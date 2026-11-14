@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>下班了</title>
+  <link rel="stylesheet" href="reminder.css">
+</head>
+<body>
+  <div class="halo halo-a" aria-hidden="true"></div>
+  <div class="halo halo-b" aria-hidden="true"></div>
+  <main class="reminder">
+    <p class="eyebrow">SHIFT COMPLETE</p>
+    <h1>下班了</h1>
+    <p class="shift" id="shiftLabel">今天的班次结束了</p>
+    <div class="time" id="clock">--:--</div>
+    <button class="dismiss" id="dismiss" type="button">收工</button>
+    <p class="hint">按 Esc 也可以关闭</p>
+  </main>
+  <script src="reminder.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "banbiao-ui-test",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local visual and interaction tests for the Banbiao UI",
+  "dependencies": {
+    "playwright-core": "^1.64.1",
+    "ws": "^8.22.1"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "banbiao",
+  "productName": "班表",
+  "version": "1.4.1",
+  "description": "按日期排班的极简日历",
+  "main": "main.js",
+  "author": "Banbiao",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "electron": "45.2.1"
+  }
+}

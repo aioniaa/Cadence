@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>班表</title>
+  <link rel="icon" type="image/png" href="assets/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <script src="theme-init.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="titlebar-drag" aria-hidden="true"></div>
+
+  <div class="app" id="appRoot">
+    <header class="topbar">
+      <div class="brand">
+        <img class="app-mark" src="assets/icon-64.png" alt="" width="30" height="30">
+        <div class="brand-text">
+          <span class="brand-name">班表</span>
+          <span class="brand-sub">按日期排班</span>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="auto-button" id="autoButton" type="button" aria-haspopup="dialog">
+          <svg class="auto-button-icon" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M15.9 8.3A6 6 0 1 0 16 11.6M15.9 4.5v3.8h-3.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>自动排班</span>
+          <span class="auto-active-dot" id="autoActiveDot" hidden aria-hidden="true"></span>
+        </button>
+        <button class="theme-button" id="themeButton" type="button" aria-label="切换到深色模式">
+          <svg class="theme-icon theme-icon-moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.2 12.1A6.7 6.7 0 0 1 7.9 3.8 6.8 6.8 0 1 0 16.2 12.1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <svg class="theme-icon theme-icon-sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.3v2M10 15.7v2M2.3 10h2M15.7 10h2M4.6 4.6l1.4 1.4M14 14l1.4 1.4M15.4 4.6 14 6M6 14l-1.4 1.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+        <button class="today-button" id="todayButton" type="button">今天</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="page">
+        <header class="page-head">
+          <div class="month-title">
+            <p class="year-label" id="yearLabel">2026年</p>
+            <h1 class="month-label" id="monthLabel">11月</h1>
+          </div>
+          <div class="month-actions" aria-label="切换月份">
+            <button class="circle-button" id="prevMonth" type="button" aria-label="上个月">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="circle-button" id="nextMonth" type="button" aria-label="下个月">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4.5 13 10l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="content-grid">
+          <section class="calendar-card" aria-labelledby="monthLabel">
+            <div class="weekdays" aria-hidden="true">
+              <span class="weekday">一</span>
+              <span class="weekday">二</span>
+              <span class="weekday">三</span>
+              <span class="weekday">四</span>
+              <span class="weekday">五</span>
+              <span class="weekday weekday-weekend">六</span>
+              <span class="weekday weekday-weekend">日</span>
+            </div>
+            <div class="calendar-grid" id="calendarGrid" role="group" aria-label="月历"></div>
+            <footer class="calendar-footer">
+              <div class="legend" id="legend" aria-label="班次图例"></div>
+              <p class="month-summary" id="monthSummary">本月尚未排班</p>
+            </footer>
+          </section>
+
+          <aside class="day-panel" id="dayPanel" aria-label="日期详情">
+            <div class="panel-date">
+              <p class="panel-weekday" id="panelWeekday">星期二</p>
+              <div class="panel-date-line">
+                <h2 id="panelDate">11月3日</h2>
+                <span class="today-chip" id="panelToday" hidden>今天</span>
+              </div>
+            </div>
+
+            <div class="current-shift" id="currentShift">
+              <span class="current-shift-dot" aria-hidden="true"></span>
+              <span id="currentShiftText">尚未排班</span>
+              <span class="shift-source" id="shiftSource" hidden></span>
+            </div>
+
+            <div class="panel-section">
+              <div class="section-head">
+                <h3>选择班次</h3>
+                <span class="section-note" id="sectionNote">按日期记录</span>
+              </div>
+              <div class="shift-list" id="desktopShiftList" role="radiogroup" aria-label="班次"></div>
+              <button class="clear-button" id="desktopClear" type="button">清除排班</button>
+            </div>
+
+            <section class="desktop-reminder" id="desktopReminder" aria-label="今日下班倒计时">
+              <div class="desktop-reminder-ring" id="desktopReminderRing">
+                <span class="desktop-reminder-core" aria-hidden="true"></span>
+              </div>
+              <div class="desktop-reminder-copy">
+                <p class="desktop-reminder-label" id="desktopReminderLabel">距离下班</p>
+                <p class="desktop-reminder-time" id="desktopReminderTime">--:--:--</p>
+                <p class="desktop-reminder-meta" id="desktopReminderMeta">—</p>
+              </div>
+              <button class="desktop-times-button" id="desktopTimesButton" type="button" aria-label="设置班次时间">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.7" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 4.8V8l2.2 1.4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>时间</span>
+              </button>
+            </section>
+
+            <footer class="panel-footer">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.25" y="7" width="9.5" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 7V5.2a2.5 2.5 0 0 1 5 0V7" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <span>仅保存在此设备</span>
+            </footer>
+          </aside>
+        </div>
+
+        <section class="today-card" id="todayCard" aria-label="今日班次倒计时">
+          <div class="today-card-head">
+            <div>
+              <p class="today-eyebrow" id="todayEyebrow">今天 · 11月3日</p>
+              <h2 class="today-shift" id="todayShift">白班</h2>
+            </div>
+            <span class="today-source" id="todaySource" hidden></span>
+          </div>
+          <div class="countdown-dial" id="countdownDial">
+            <div class="countdown-dial-inner">
+              <p class="countdown-label" id="countdownLabel">距离下班</p>
+              <p class="countdown-value" id="countdownValue">--:--:--</p>
+            </div>
+          </div>
+          <div class="today-card-foot">
+            <span class="today-hours" id="todayHours">全天</span>
+            <button class="times-button" id="timesButton" type="button">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.7" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 4.8V8l2.2 1.4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              时间设置
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="sheet-layer" id="sheetLayer" aria-hidden="true">
+    <div class="sheet-backdrop" id="sheetBackdrop"></div>
+    <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="sheet-grabber" aria-hidden="true"></div>
+      <header class="sheet-head">
+        <div>
+          <p class="sheet-date" id="sheetDate">11月3日 · 星期二</p>
+          <h2 id="sheetTitle">安排班次</h2>
+        </div>
+        <button class="close-button" id="sheetClose" type="button" aria-label="关闭">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+      <div class="sheet-options" id="sheetShiftList" role="radiogroup" aria-label="班次"></div>
+      <button class="sheet-clear" id="sheetClear" type="button">清除排班</button>
+      <p class="sheet-hint">选择后立即保存</p>
+    </section>
+  </div>
+
+  <div class="modal-layer" id="autoLayer" aria-hidden="true">
+    <div class="modal-backdrop" id="autoBackdrop"></div>
+    <section class="auto-dialog" id="autoDialog" role="dialog" aria-modal="true" aria-labelledby="autoTitle">
+      <div class="auto-grabber" aria-hidden="true"></div>
+      <header class="auto-head">
+        <div>
+          <p class="auto-eyebrow">轮班规则</p>
+          <h2 id="autoTitle">自动排班</h2>
+        </div>
+        <button class="close-button" id="autoClose" type="button" aria-label="关闭">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+      <p class="auto-sub">设定一次循环，日历会从今天起自动排满后面的班次。</p>
+
+      <div class="auto-scroll">
+        <section class="auto-section">
+          <div class="auto-section-head">
+            <h3>循环顺序</h3>
+            <span id="cycleLengthLabel">周期 12 天</span>
+          </div>
+          <div class="segment-list" id="segmentList"></div>
+          <button class="add-segment" id="addSegment" type="button">＋ 添加一段</button>
+        </section>
+
+        <section class="auto-section">
+          <div class="auto-section-head">
+            <h3>今天是周期第几天？</h3>
+            <span>点选一个节点</span>
+          </div>
+          <div class="cycle-strip" id="cycleStrip" role="listbox" aria-label="选择今天在周期中的位置"></div>
+          <p class="cycle-caption" id="cycleCaption" aria-live="polite">今天 = 周期第 1 天</p>
+        </section>
+
+        <section class="auto-section auto-preview-section">
+          <div class="auto-section-head">
+            <h3>接下来 7 天</h3>
+            <span>自动预览</span>
+          </div>
+          <div class="auto-preview" id="autoPreview"></div>
+        </section>
+      </div>
+
+      <footer class="auto-footer">
+        <div class="auto-danger">
+          <button class="disable-auto" id="disableAuto" type="button" hidden>关闭自动排班</button>
+          <p class="auto-note" id="autoNote" hidden>关闭后，自动班次会消失，手动调整会保留。</p>
+        </div>
+        <div class="auto-footer-actions">
+          <button class="auto-cancel" id="autoCancel" type="button">取消</button>
+          <button class="auto-save" id="autoSave" type="button">开始自动排班</button>
+        </div>
+      </footer>
+    </section>
+  </div>
+
+  <div class="modal-layer" id="timesLayer" aria-hidden="true">
+    <div class="modal-backdrop" id="timesBackdrop"></div>
+    <section class="times-sheet" id="timesSheet" role="dialog" aria-modal="true" aria-labelledby="timesTitle">
+      <div class="sheet-grabber" aria-hidden="true"></div>
+      <header class="times-head">
+        <div>
+          <p class="times-eyebrow">班次设置</p>
+          <h2 id="timesTitle">上下班时间</h2>
+        </div>
+        <button class="close-button" id="timesClose" type="button" aria-label="关闭">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+      <p class="times-sub">设置每个班次的开始与结束时间，夜班允许跨天。</p>
+      <div class="time-list" id="timeList"></div>
+      <p class="times-note">修改后会立即用于班次列表和今日倒计时。</p>
+      <button class="times-save" id="timesSave" type="button">保存时间</button>
+    </section>
+  </div>
+
+  <div class="live-region" id="liveRegion" role="status" aria-live="polite"></div>
+  <div class="error-toast" id="errorToast" role="alert" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

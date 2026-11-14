@@ -1,0 +1,65 @@
+import java.util.Properties
+
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+def keystoreFile = rootProject.file('keystore.properties')
+def keystore = new Properties()
+if (keystoreFile.exists()) keystore.load(new FileInputStream(keystoreFile))
+
+android {
+    namespace 'com.banbiao.app'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.banbiao.app'
+        minSdk 26
+        targetSdk 36
+        versionCode 43
+        versionName '2.4.20'
+    }
+    signingConfigs {
+        if (keystoreFile.exists()) {
+            release {
+                storeFile rootProject.file(keystore['storeFile'])
+                storePassword keystore['storePassword']
+                keyAlias keystore['keyAlias']
+                keyPassword keystore['keyPassword']
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (keystoreFile.exists()) signingConfig signingConfigs.release
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = '17' }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+    packaging {
+        resources.excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        jniLibs.useLegacyPackaging = false
+    }
+}
+
+dependencies {
+    implementation platform('androidx.compose:compose-bom:2026.03.01')
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.foundation:foundation'
+    implementation 'androidx.activity:activity-compose:1.10.1'
+    implementation 'androidx.core:core-ktx:1.15.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-collections-immutable:0.5.2'
+    implementation 'io.github.feice11:mochi-compose:0.2.0'
+    implementation 'io.github.feice11:mochi-icons:0.2.0'
+}

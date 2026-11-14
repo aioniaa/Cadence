@@ -1,0 +1,40 @@
+.toolchain/
+.tmp/
+.chrome-profile/
+.playwright-profile/
+node_modules/
+macos/node_modules/
+macos/web/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+.DS_Store
+
+# Release artifacts are uploaded to GitHub Releases, not committed
+dist/
+
+# Rust/Android build caches
+android-mochi/rust/**/target/
+android-mochi/.kotlin/
+android-mochi/local.properties
+.kotlin/
+*.log
+
+android-mochi/.gradle/
+android-mochi/build/
+android-mochi/app/build/
+SingletonCookie
+SingletonLock
+SingletonSocket
+
+macos/build/
+
+# Signing secrets
+android-mochi/keystore.properties
+android-mochi/keystore/
+android/keystore.properties
+android/keystore/
+
+# Built desktop helper app
+macos/desktop-widget/BanbiaoDesktopWidget.app/
