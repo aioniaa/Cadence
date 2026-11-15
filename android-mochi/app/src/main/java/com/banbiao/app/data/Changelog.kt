@@ -11,6 +11,12 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
     ChangelogEntry(
         version = AppInfo.version,
         current = true,
+        fixes = listOf(
+            "修复鸣谢行文字未垂直居中",
+        ),
+    ),
+    ChangelogEntry(
+        version = "2.6.0",
         updates = listOf(
             "更新弹窗只展示版本更新内容，不再带附件和安装说明",
             "设置新增鸣谢，链接作者与 mochi-compose",

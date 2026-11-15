@@ -1,6 +1,6 @@
 # Cadence
 
-按日期排班的极简班表。Android 2.6.0 使用原生 Kotlin + Jetpack Compose，界面组件来自 [mochi-compose 0.2.0](https://github.com/feice11/mochi-compose)，排班投影与倒计时核心用 Rust 实现。macOS 1.4.1 保留桌面版和桌面小组件。
+按日期排班的极简班表。Android 2.6.1 使用原生 Kotlin + Jetpack Compose，界面组件来自 [mochi-compose 0.2.0](https://github.com/feice11/mochi-compose)，排班投影与倒计时核心用 Rust 实现。macOS 1.4.1 保留桌面版和桌面小组件。
 
 > **技术说明**：mochi-compose 是 Kotlin / Jetpack Compose 组件库，无法从 Rust 直接调用。因此采用 **UI = Kotlin + Compose + Mochi，核心 = Rust + JNI**。这样既能严格使用组件库，又能把日期投影、自动轮班和倒计时放进 Rust。
 
@@ -16,7 +16,7 @@
 
 黑色到深灰的渐变背景 + 单个粗体连笔 C，代表 Cadence；没有额外图形、文字或拼接。Android 使用自适应图标、单色主题图标和旧版 PNG 图标。
 
-## Android 2.6.0
+## Android 2.6.1
 
 ### 三个页面 + 悬浮底栏
 
@@ -100,11 +100,11 @@ Rust 动态读取 `shiftTypes`，支持任意班次 ID、名称和时间；旧�
 
 ### Android
 
-1. 安装 `Cadence-2.6.0-Android.apk`
+1. 安装 `Cadence-2.6.1-Android.apk`
 2. Android 8.0（API 26）及以上
 3. 覆盖安装旧版即可；首次启动会迁移旧 WebView 排班数据
 
-APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCode 47，可直接覆盖 2.1.x / 2.0.x / 1.3.2。
+APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCode 48，可直接覆盖 2.1.x / 2.0.x / 1.3.2。
 
 ### macOS
 
@@ -126,7 +126,7 @@ APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCo
 脚本会编译 Rust 两个 ABI、复制 `.so`、构建 release APK，并输出：
 
 ```text
-dist/Cadence-2.6.0-Android.apk
+dist/Cadence-2.6.1-Android.apk
 ```
 
 如果 Rust 尚未安装：
@@ -170,7 +170,7 @@ dist/                   安装包
 
 ## 测试
 
-- Android 2.6.0 release 在 Android 15 模拟器安装运行；验证三个 Tab、悬浮底栏、无卡片主页、上班前充能/下班递减进度、休息日下次上班倒计时、混色倒计时、左右滑动月历、主题和 Rust JNI。
+- Android 2.6.1 release 在 Android 15 模拟器安装运行；验证三个 Tab、悬浮底栏、无卡片主页、上班前充能/下班递减进度、休息日下次上班倒计时、混色倒计时、左右滑动月历、主题和 Rust JNI。
 - 自定义班次：实际添加 `Early 09:00–18:00`，在日期上排班，主页倒计时显示 `Early · 09:00–18:00`。
 - 休假：日期详情可设置/取消休假，选中后可用日期范围选择器批量设置；Rust 测试验证休假暂停、假期续接和自动轮班暂停。
 - 日历点击：实际点选 11 月 15 日能打开日期详情并修改班次；批量休假入口保留在日历底部。

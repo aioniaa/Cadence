@@ -111,25 +111,25 @@ internal fun SettingsPage(
             }
         }
         item {
-            MochiListSection(header = "鸣谢") {
+            MochiListSection(
+                header = "鸣谢",
+                footer = "点击作者或组件库打开 GitHub 页面",
+            ) {
                 MochiListRow(
-                    title = "作者",
-                    subtitle = "aioniaa",
+                    title = "作者 · aioniaa",
                     value = "GitHub",
                     chevron = true,
                     onClick = { uriHandler.openUri("https://github.com/aioniaa") },
                 )
                 MochiListRow(
-                    title = "组件库",
-                    subtitle = "mochi-compose · feice11",
+                    title = "组件库 · mochi-compose",
                     value = "GitHub",
                     chevron = true,
                     onClick = { uriHandler.openUri("https://github.com/feice11/mochi-compose") },
                 )
                 MochiListRow(
                     title = "开源许可证",
-                    subtitle = "Apache License 2.0",
-                    value = "查看",
+                    value = "Apache-2.0",
                     chevron = true,
                     onClick = { uriHandler.openUri("https://www.apache.org/licenses/LICENSE-2.0") },
                 )
