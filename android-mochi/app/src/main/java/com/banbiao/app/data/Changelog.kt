@@ -11,6 +11,13 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
     ChangelogEntry(
         version = AppInfo.version,
         current = true,
+        fixes = listOf(
+            "累计工资卡片的圆角与底色裁切对齐，不再出现边缘色块",
+            "工资页和首页金额统一保留两位小数，整元也显示 .00",
+        ),
+    ),
+    ChangelogEntry(
+        version = "2.6.3",
         updates = listOf(
             "首页底部新增本月工资入口，用弹窗记录实际到手金额",
             "新增工资页：累计工资、按月/按年汇总和年度明细",

@@ -778,7 +778,7 @@ private fun SalaryEntryChip(cents: Long, onClick: () -> Unit) {
         MochiIonicon("wallet-outline", size = 13.dp, tint = scheme.primary)
         Spacer(Modifier.width(4.dp))
         Text(
-            if (cents > 0) "本月 ${formatSalaryCompact(cents)}" else "记录本月工资",
+            if (cents > 0) "本月 ${formatSalary(cents)}" else "记录本月工资",
             style = MochiTheme.textStyles.footnote.copy(fontWeight = FontWeight.Medium),
             color = scheme.onSurface,
         )

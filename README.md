@@ -1,6 +1,6 @@
 # Cadence
 
-按日期排班的极简班表。Android 2.6.3 使用原生 Kotlin + Jetpack Compose，界面组件来自 [mochi-compose 0.2.0](https://github.com/feice11/mochi-compose)，排班投影与倒计时核心用 Rust 实现。macOS 1.4.1 保留桌面版和桌面小组件。
+按日期排班的极简班表。Android 2.6.4 使用原生 Kotlin + Jetpack Compose，界面组件来自 [mochi-compose 0.2.0](https://github.com/feice11/mochi-compose)，排班投影与倒计时核心用 Rust 实现。macOS 1.4.1 保留桌面版和桌面小组件。
 
 > **技术说明**：mochi-compose 是 Kotlin / Jetpack Compose 组件库，无法从 Rust 直接调用。因此采用 **UI = Kotlin + Compose + Mochi，核心 = Rust + JNI**。这样既能严格使用组件库，又能把日期投影、自动轮班和倒计时放进 Rust。
 
@@ -16,7 +16,7 @@
 
 黑色到深灰的渐变背景 + 单个粗体连笔 C，代表 Cadence；没有额外图形、文字或拼接。Android 使用自适应图标、单色主题图标和旧版 PNG 图标。
 
-## Android 2.6.3
+## Android 2.6.4
 
 ### 四个页面 + 悬浮底栏
 
@@ -66,8 +66,9 @@
 - **累计工资**：工资页顶部用 `MochiCounterText` 展示所有月份合计，金额变化时逐位滚动。
 - **按年月查询**：`MochiSegmentedControl` 在「按月 / 按年」之间切换，用左右按钮浏览年份和月份；按月显示所选月份合计，按年汇总全年已记录月份。
 - **年度明细**：列出所选年份每个已记录月份，点击任意月份可以直接修改；明细卡片显示 `¥` 金额并带千分位。
+- **卡片裁切**：累计工资的背景渐变直接按列表卡片的 `SectionCorner` 裁切，圆角和底色边缘保持一致。
 - **存储**：金额按「年-月」以分为单位存进 `AppState.salaries`，只写入本机状态文件；不联网、不上传，卸载应用会一并删除。
-- **金额格式**：统一 `¥12,345.67`；首页入口用紧凑格式，整元时不显示小数。
+- **金额格式**：统一 `¥12,345.67`，所有入口和明细始终保留两位小数，整元也显示 `.00`。
 
 ### 配色
 
@@ -112,11 +113,11 @@ Rust 动态读取 `shiftTypes`，支持任意班次 ID、名称和时间；旧�
 
 ### Android
 
-1. 安装 `Cadence-2.6.3-Android.apk`
+1. 安装 `Cadence-2.6.4-Android.apk`
 2. Android 8.0（API 26）及以上
 3. 覆盖安装旧版即可；首次启动会迁移旧 WebView 排班数据
 
-APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCode 50，可直接覆盖 2.1.x / 2.0.x / 1.3.2。
+APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCode 51，可直接覆盖 2.1.x / 2.0.x / 1.3.2。
 
 ### macOS
 
@@ -138,7 +139,7 @@ APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCo
 脚本会编译 Rust 两个 ABI、复制 `.so`、构建 release APK，并输出：
 
 ```text
-dist/Cadence-2.6.3-Android.apk
+dist/Cadence-2.6.4-Android.apk
 ```
 
 如果 Rust 尚未安装：
@@ -183,8 +184,9 @@ dist/                   安装包
 
 ## 测试
 
-- Android 2.6.3 release 在 Android 15 模拟器安装运行；验证 4 个 Tab、悬浮底栏、无卡片主页、上班前充能/下班递减进度、休息日下次上班倒计时、混色倒计时、左右滑动月历、主题和 Rust JNI。
+- Android 2.6.4 release 在 Android 15 模拟器安装运行；验证 4 个 Tab、悬浮底栏、无卡片主页、上班前充能/下班递减进度、休息日下次上班倒计时、混色倒计时、左右滑动月历、主题和 Rust JNI。
 - 工资：实际验证首页入口、MochiDialog 输入、按月/按年汇总、跨月累计、年度明细、修改和输入 0 清除；强制停止后重新打开数据仍在。
+- 工资金额：2.6.4 实测首页、累计、按月、明细均保留两位小数，整元显示为 `¥1,000.00`。
 - 自定义班次：实际添加 `Early 09:00–18:00`，在日期上排班，主页倒计时显示 `Early · 09:00–18:00`。
 - 休假：日期详情可设置/取消休假，选中后可用日期范围选择器批量设置；Rust 测试验证休假暂停、假期续接和自动轮班暂停。
 - 日历点击：实际点选 11 月 15 日能打开日期详情并修改班次；批量休假入口保留在日历底部。

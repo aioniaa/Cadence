@@ -47,9 +47,11 @@ import ui.feice.mochi.effect.content.MochiBlurText
 import ui.feice.mochi.effect.content.MochiCounterText
 import ui.feice.mochi.icons.MochiIonicon
 import ui.feice.mochi.list.MochiListCard
+import ui.feice.mochi.list.MochiListDefaults
 import ui.feice.mochi.list.MochiListRow
 import ui.feice.mochi.list.MochiListSection
 import ui.feice.mochi.navigation.MochiLazyLargeTitleScaffold
+import ui.feice.mochi.shape.MochiRoundedRectangle
 import ui.feice.mochi.theme.MochiTheme
 import com.banbiao.app.data.AppState
 
@@ -204,7 +206,7 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                             } else {
                                 "点击修改"
                             },
-                            value = formatSalaryCompact(cents),
+                            value = formatSalary(cents),
                             chevron = true,
                             onClick = {
                                 editingKey = AppState.salaryKey(year, recordedMonth)
@@ -232,63 +234,65 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
 @Composable
 private fun SalarySummaryCard(total: Long, months: Int) {
     val scheme = MochiTheme.colorScheme
-    MochiListCard {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .clip(MochiTheme.shapes.extraLarge)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            scheme.primary.copy(alpha = 0.16f),
-                            Color.Transparent,
-                        ),
+    val shape = remember { MochiRoundedRectangle(MochiListDefaults.SectionCorner) }
+    val cardColor = MochiListDefaults.colors().container
+    MochiListCard(
+        colors = MochiListDefaults.colors(container = Color.Transparent),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(cardColor)
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        scheme.primary.copy(alpha = 0.16f),
+                        Color.Transparent,
                     ),
                 ),
-        ) {
-            Column(Modifier.fillMaxWidth().padding(20.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    MochiBlurText(
-                        text = "累计工资",
-                        style = MochiTheme.textStyles.subhead,
-                        color = scheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Box(
-                        Modifier
-                            .size(30.dp)
-                            .clip(MochiTheme.shapes.small)
-                            .background(scheme.primary.copy(alpha = 0.12f)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        MochiIonicon("wallet-outline", size = 17.dp, tint = scheme.primary)
-                    }
-                }
-                Spacer(Modifier.height(10.dp))
-                MochiCounterText(
-                    text = formatSalary(total),
-                    direction = 1,
-                    style = MochiTheme.textStyles.displaySmall.copy(
-                        fontSize = when {
-                            formatSalary(total).length > 17 -> 22.sp
-                            formatSalary(total).length > 14 -> 28.sp
-                            else -> 36.sp
-                        },
-                        fontWeight = FontWeight.Bold,
-                    ),
-                    color = scheme.onSurface,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    if (months == 0) {
-                        "还没有记录，去首页底部记一笔"
-                    } else {
-                        "已记录 $months 个月 · 每一笔都算数"
-                    },
-                    style = MochiTheme.textStyles.footnote,
+            ),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                MochiBlurText(
+                    text = "累计工资",
+                    style = MochiTheme.textStyles.subhead,
                     color = scheme.onSurfaceVariant,
                 )
+                Spacer(Modifier.weight(1f))
+                Box(
+                    Modifier
+                        .size(30.dp)
+                        .clip(MochiTheme.shapes.small)
+                        .background(scheme.primary.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    MochiIonicon("wallet-outline", size = 17.dp, tint = scheme.primary)
+                }
             }
+            Spacer(Modifier.height(10.dp))
+            MochiCounterText(
+                text = formatSalary(total),
+                direction = 1,
+                style = MochiTheme.textStyles.displaySmall.copy(
+                    fontSize = when {
+                        formatSalary(total).length > 17 -> 22.sp
+                        formatSalary(total).length > 14 -> 28.sp
+                        else -> 36.sp
+                    },
+                    fontWeight = FontWeight.Bold,
+                ),
+                color = scheme.onSurface,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                if (months == 0) {
+                    "还没有记录，去首页底部记一笔"
+                } else {
+                    "已记录 $months 个月 · 每一笔都算数"
+                },
+                style = MochiTheme.textStyles.footnote,
+                color = scheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -303,7 +307,7 @@ internal fun SalaryEntryDialog(
     var value by remember(monthKey) {
         mutableStateOf(
             if (initialCents > 0) {
-                BigDecimal.valueOf(initialCents, 2).stripTrailingZeros().toPlainString()
+                BigDecimal.valueOf(initialCents, 2).toPlainString()
             } else {
                 ""
             },
@@ -372,12 +376,6 @@ internal fun formatSalary(cents: Long): String {
     val yuan = safe / 100
     val fen = (safe % 100).toInt()
     return "¥${groupDigits(yuan)}.${fen.toString().padStart(2, '0')}"
-}
-
-internal fun formatSalaryCompact(cents: Long): String {
-    val safe = cents.coerceAtLeast(0L)
-    val yuan = safe / 100
-    return if (safe % 100L == 0L) "¥${groupDigits(yuan)}" else formatSalary(safe)
 }
 
 private fun groupDigits(value: Long): String =
