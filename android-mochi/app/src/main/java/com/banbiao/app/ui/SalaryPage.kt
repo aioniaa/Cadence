@@ -167,17 +167,16 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                                     year = MIN_SALARY_YEAR + index
                                 },
                                 selectedIndex = year - MIN_SALARY_YEAR,
-                                modifier = Modifier.height(40.dp),
                             ) {
                                 Text(
                                     "${year}年",
-                                    style = MochiTheme.textStyles.body.copy(fontSize = 14.sp),
+                                    style = MochiTheme.textStyles.body,
                                     color = MochiTheme.colorScheme.onSurface,
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 MochiIonicon(
                                     "chevron-down",
-                                    size = 12.dp,
+                                    size = 16.dp,
                                     tint = MochiTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
@@ -191,17 +190,17 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                                         month = index + 1
                                     },
                                     selectedIndex = month - 1,
-                                    modifier = Modifier.height(40.dp),
                                 ) {
-                                    Text(
-                                        "${month}月",
-                                        style = MochiTheme.textStyles.body.copy(fontSize = 14.sp),
+                                    MochiCounterText(
+                                        value = month.toLong(),
+                                        style = MochiTheme.textStyles.body,
                                         color = MochiTheme.colorScheme.onSurface,
+                                        format = { "${it}月" },
                                     )
                                     Spacer(Modifier.width(4.dp))
                                     MochiIonicon(
                                         "chevron-down",
-                                        size = 12.dp,
+                                        size = 16.dp,
                                         tint = MochiTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
@@ -226,7 +225,7 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                         ) { MochiIonicon("chevron-forward", size = 20.dp) }
                     }
                     Column(
-                        Modifier.fillMaxWidth().padding(vertical = 20.dp),
+                        Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 28.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         MochiCounterText(
@@ -295,8 +294,17 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
             }
         }
         item {
+            MochiCounterText(
+                value = year.toLong(),
+                style = MochiTheme.textStyles.navTitle,
+                color = MochiTheme.colorScheme.onSurfaceVariant,
+                format = { "${it}年明细" },
+                modifier = Modifier
+                    .padding(horizontal = MochiListDefaults.TextRowPadding)
+                    .padding(bottom = MochiListDefaults.HeaderGap),
+            )
             MochiListSection(
-                header = "${year}年明细",
+                header = null,
                 footer = "工资仅保存在本机，卸载应用会一并删除。",
             ) {
                 if (recordedMonths.isEmpty()) {

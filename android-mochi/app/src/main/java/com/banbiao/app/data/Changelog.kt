@@ -12,6 +12,14 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
         version = AppInfo.version,
         current = true,
         updates = listOf(
+            "工资页月份与年度明细标题改用 MochiCounterText，切换年份和月份时数字滚动过渡",
+            "工资页年/月下拉恢复原来的大小和字号",
+            "工资金额下方增加间距，整体视觉位置略微上移",
+        ),
+    ),
+    ChangelogEntry(
+        version = "2.6.7",
+        updates = listOf(
             "工资页年/月切换时，底部操作按钮使用 Mochi 模糊替换过渡",
             "工资金额与「已记录」行的上下留白一致，金额视觉居中",
         ),

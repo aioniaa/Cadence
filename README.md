@@ -1,6 +1,6 @@
 # Cadence
 
-按日期排班的极简班表。Android 2.6.7 使用原生 Kotlin + Jetpack Compose，界面组件来自 [mochi-compose 0.2.0](https://github.com/feice11/mochi-compose)，排班投影与倒计时核心用 Rust 实现。macOS 1.4.1 保留桌面版和桌面小组件。
+按日期排班的极简班表。Android 2.6.8 使用原生 Kotlin + Jetpack Compose，界面组件来自 [mochi-compose 0.2.0](https://github.com/feice11/mochi-compose)，排班投影与倒计时核心用 Rust 实现。macOS 1.4.1 保留桌面版和桌面小组件。
 
 > **技术说明**：mochi-compose 是 Kotlin / Jetpack Compose 组件库，无法从 Rust 直接调用。因此采用 **UI = Kotlin + Compose + Mochi，核心 = Rust + JNI**。这样既能严格使用组件库，又能把日期投影、自动轮班和倒计时放进 Rust。
 
@@ -13,7 +13,7 @@
 
 黑色到深灰的渐变背景 + 单个粗体连笔 C，代表 Cadence；没有额外图形、文字或拼接。Android 使用自适应图标、单色主题图标和旧版 PNG 图标。
 
-## Android 2.6.7
+## Android 2.6.8
 
 ### 四个页面 + 悬浮底栏
 
@@ -61,9 +61,10 @@
 
 - **首页入口**：日历底部右侧显示「本月工资」；未记录时显示「记录本月工资」，点击后用 `MochiDialog` + `MochiDialogTextField` 输入金额。输入 0 可以清除本月记录。
 - **累计工资**：工资页顶部用 `MochiCounterText` 展示所有月份合计，金额变化时逐位滚动。
-- **按年月查询**：`MochiSegmentedControl` 在「按月 / 按年」之间切换；年份和月份都用 `MochiDropdown` 下拉选择，可直接跳到具体年月，左右按钮仍可逐月/逐年浏览。年/月下拉使用紧凑高度和 14sp 标签；金额区域上下各留 20dp，与「已记录」一起视觉居中。
+- **按年月查询**：`MochiSegmentedControl` 在「按月 / 按年」之间切换；年份和月份都用 `MochiDropdown` 下拉选择，可直接跳到具体年月，左右按钮仍可逐月/逐年浏览。年/月下拉恢复常规高度和字号；金额区域上方留 20dp、下方留 28dp，视觉位置略微上移。
 - **回到本月**：当查看的不是当前年月时，操作区显示「回到本月」，点击立即切回按月模式并定位到当前月份。
 - **操作区过渡**：切换年月导致底部按钮组合变化时，使用 `MochiBlurCrossfade` + `MochiBlurTransitions.Replace` 做模糊替换，新旧按钮叠化过渡，不再瞬间切换。
+- **数字过渡**：月份标签和「年度明细」标题中的年份使用 `MochiCounterText`，切换时按数字滚轮过渡，不直接闪现。
 - **年度明细**：列出所选年份每个已记录月份，点击任意月份可以直接修改；明细卡片显示 `¥` 金额并带千分位。
 - **弹窗动画**：工资记录弹窗保存、取消或返回时先播放 `MochiDialog` 退场动画，再移除弹窗，不再瞬间消失。
 - **卡片裁切**：累计工资的背景渐变直接按列表卡片的 `SectionCorner` 裁切，圆角和底色边缘保持一致。
@@ -94,7 +95,7 @@
 - `MochiSegmentedControl` / `MochiStepper` / `MochiChipGroup` / `MochiChip`
 - `MochiTimeField`
 - `MochiProgressRing`
-- `MochiCounterText` / `MochiBlurText`
+- `MochiCounterText` / `MochiBlurText` / `MochiBlurCrossfade`
 - `MochiToastHost` / `MochiDialog`
 - `MochiIonicon`
 
@@ -114,11 +115,11 @@ Rust 动态读取 `shiftTypes`，支持任意班次 ID、名称和时间；旧�
 
 ### Android
 
-1. 安装 `Cadence-2.6.7-Android.apk`
+1. 安装 `Cadence-2.6.8-Android.apk`
 2. Android 8.0（API 26）及以上
 3. 覆盖安装旧版即可；首次启动会迁移旧 WebView 排班数据
 
-APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCode 54，可直接覆盖 2.1.x / 2.0.x / 1.3.2。
+APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCode 55，可直接覆盖 2.1.x / 2.0.x / 1.3.2。
 
 ### macOS
 
@@ -140,7 +141,7 @@ APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCo
 脚本会编译 Rust 两个 ABI、复制 `.so`、构建 release APK，并输出：
 
 ```text
-dist/Cadence-2.6.7-Android.apk
+dist/Cadence-2.6.8-Android.apk
 ```
 
 如果 Rust 尚未安装：
@@ -185,11 +186,12 @@ dist/                   安装包
 
 ## 测试
 
-- Android 2.6.7 release 在 Android 15 模拟器安装运行；验证 4 个 Tab、悬浮底栏、无卡片主页、上班前充能/下班递减进度、休息日下次上班倒计时、混色倒计时、左右滑动月历、主题和 Rust JNI。
+- Android 2.6.8 release 在 Android 15 模拟器安装运行；验证 4 个 Tab、悬浮底栏、无卡片主页、上班前充能/下班递减进度、休息日下次上班倒计时、混色倒计时、左右滑动月历、主题和 Rust JNI。
 - 工资：实际验证首页入口、MochiDialog 输入、按月/按年汇总、跨月累计、年度明细、修改和输入 0 清除；强制停止后重新打开数据仍在。
-- 工资金额：2.6.7 实测首页、累计、按月、明细均保留两位小数，整元显示为 `¥1,000.00`。
-- 工资年月跳转：2.6.7 实测年份下拉切到 2025 年、月份下拉切到 5 月，点「回到本月」恢复 2026 年 11 月；保存/取消/返回键均先播放关闭动画再移除弹窗。
-- 工资操作区：2.6.7 实测切换年月时底部按钮组合改用 `MochiBlurCrossfade` 过渡；金额与「已记录」行上下留白一致。
+- 工资金额：2.6.8 实测首页、累计、按月、明细均保留两位小数，整元显示为 `¥1,000.00`。
+- 工资年月跳转：2.6.8 实测年份下拉切到 2025 年、月份下拉切到 5 月，点「回到本月」恢复 2026 年 11 月；保存/取消/返回键均先播放关闭动画再移除弹窗。
+- 工资操作区：2.6.8 实测切换年月时底部按钮组合改用 `MochiBlurCrossfade` 过渡；金额下方额外留白后视觉位置略微上移。
+- 工资数字过渡：2.6.8 实测月份与明细标题年份切换正常；年/月下拉恢复常规大小后仍可点开选择。
 - 自定义班次：实际添加 `Early 09:00–18:00`，在日期上排班，主页倒计时显示 `Early · 09:00–18:00`。
 - 休假：日期详情可设置/取消休假，选中后可用日期范围选择器批量设置；Rust 测试验证休假暂停、假期续接和自动轮班暂停。
 - 日历点击：实际点选 11 月 15 日能打开日期详情并修改班次；批量休假入口保留在日历底部。
