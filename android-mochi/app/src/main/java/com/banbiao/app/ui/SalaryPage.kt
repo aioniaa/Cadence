@@ -1,6 +1,8 @@
 package com.banbiao.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,13 +37,17 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.delay
 import ui.feice.mochi.basic.MochiButton
 import ui.feice.mochi.basic.MochiButtonStyle
 import ui.feice.mochi.basic.MochiDialog
 import ui.feice.mochi.basic.MochiDialogAction
 import ui.feice.mochi.basic.MochiDialogActionRole
 import ui.feice.mochi.basic.MochiDialogTextField
+import ui.feice.mochi.basic.MochiDropdown
 import ui.feice.mochi.basic.MochiIconButton
+import ui.feice.mochi.basic.MochiItem
 import ui.feice.mochi.basic.MochiSegmentedControl
 import ui.feice.mochi.basic.Text
 import ui.feice.mochi.effect.content.MochiBlurText
@@ -67,11 +74,17 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
     var month by rememberSaveable { mutableIntStateOf(today.monthValue) }
     var mode by rememberSaveable { mutableIntStateOf(0) } // 0 月 / 1 年
     var editingKey by remember { mutableStateOf<String?>(null) }
+    var openMenu by remember { mutableStateOf<String?>(null) }
 
     val total = state.totalSalary()
     val selectedMonthKey = AppState.salaryKey(year, month)
     val selectedTotal = if (mode == 0) state.salaryOf(selectedMonthKey) else state.salaryYear(year)
     val recordedMonths = state.salaryMonths(year)
+    val currentPeriod = year == today.year && (mode == 1 || month == today.monthValue)
+    val yearItems = remember {
+        (MIN_SALARY_YEAR..MAX_SALARY_YEAR).map { MochiItem("${it}年") }.toImmutableList()
+    }
+    val monthItems = remember { (1..12).map { MochiItem("${it}月") }.toImmutableList() }
 
     MochiLazyLargeTitleScaffold(
         title = "工资",
@@ -130,11 +143,56 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                             Modifier.weight(1f),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text(
-                                if (mode == 0) "${year}年${month}月" else "${year}年",
-                                style = MochiTheme.textStyles.titleMedium,
-                                color = MochiTheme.colorScheme.onSurface,
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                            ) {
+                                MochiDropdown(
+                                    expanded = openMenu == "year",
+                                    onExpandedChange = { openMenu = if (it) "year" else null },
+                                    items = yearItems,
+                                    onItemClick = { index ->
+                                        year = MIN_SALARY_YEAR + index
+                                    },
+                                    selectedIndex = year - MIN_SALARY_YEAR,
+                                ) {
+                                    Text(
+                                        "${year}年",
+                                        style = MochiTheme.textStyles.titleMedium,
+                                        color = MochiTheme.colorScheme.onSurface,
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    MochiIonicon(
+                                        "chevron-down",
+                                        size = 14.dp,
+                                        tint = MochiTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                if (mode == 0) {
+                                    Spacer(Modifier.width(6.dp))
+                                    MochiDropdown(
+                                        expanded = openMenu == "month",
+                                        onExpandedChange = { openMenu = if (it) "month" else null },
+                                        items = monthItems,
+                                        onItemClick = { index ->
+                                            month = index + 1
+                                        },
+                                        selectedIndex = month - 1,
+                                    ) {
+                                        Text(
+                                            "${month}月",
+                                            style = MochiTheme.textStyles.titleMedium,
+                                            color = MochiTheme.colorScheme.onSurface,
+                                        )
+                                        Spacer(Modifier.width(4.dp))
+                                        MochiIonicon(
+                                            "chevron-down",
+                                            size = 14.dp,
+                                            tint = MochiTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
+                            }
                             Spacer(Modifier.height(2.dp))
                             MochiCounterText(
                                 text = formatSalary(selectedTotal),
@@ -174,14 +232,41 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                             },
                         ) { MochiIonicon("chevron-forward", size = 20.dp) }
                     }
-                    if (mode == 0) {
+                    if (!currentPeriod || mode == 0) {
                         Spacer(Modifier.height(8.dp))
-                        MochiButton(
-                            onClick = { editingKey = selectedMonthKey },
-                            style = MochiButtonStyle.ClearGlass,
-                            modifier = Modifier.fillMaxWidth(),
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Text(if (selectedTotal > 0) "修改这个月的工资" else "录入这个月的工资")
+                            if (!currentPeriod) {
+                                MochiButton(
+                                    onClick = {
+                                        mode = 0
+                                        year = today.year
+                                        month = today.monthValue
+                                    },
+                                    style = MochiButtonStyle.ClearGlass,
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Text("回到本月")
+                                }
+                            }
+                            if (mode == 0) {
+                                MochiButton(
+                                    onClick = { editingKey = selectedMonthKey },
+                                    style = MochiButtonStyle.ClearGlass,
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Text(
+                                        when {
+                                            selectedTotal > 0 && currentPeriod -> "修改这个月的工资"
+                                            selectedTotal > 0 -> "修改"
+                                            currentPeriod -> "录入这个月的工资"
+                                            else -> "录入"
+                                        },
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -225,7 +310,6 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
             onDismiss = { editingKey = null },
             onSave = { cents ->
                 update(state.withSalary(key, cents))
-                editingKey = null
             },
         )
     }
@@ -304,6 +388,7 @@ internal fun SalaryEntryDialog(
     onDismiss: () -> Unit,
     onSave: (Long) -> Unit,
 ) {
+    var visible by remember(monthKey) { mutableStateOf(true) }
     var value by remember(monthKey) {
         mutableStateOf(
             if (initialCents > 0) {
@@ -313,6 +398,13 @@ internal fun SalaryEntryDialog(
             },
         )
     }
+    LaunchedEffect(visible) {
+        if (!visible) {
+            delay(600)
+            onDismiss()
+        }
+    }
+    BackHandler(enabled = visible) { visible = false }
     val cents = parseSalaryInput(value)
     val error = when {
         value.isNotBlank() && cents == null -> "请输入有效金额"
@@ -324,8 +416,8 @@ internal fun SalaryEntryDialog(
     val month = monthKey.substringAfter('-').toIntOrNull() ?: 0
 
     MochiDialog(
-        visible = true,
-        onDismissRequest = onDismiss,
+        visible = visible,
+        onDismissRequest = { if (visible) visible = false },
         title = "记录 ${year}年${month}月工资",
         message = "输入实际到手的金额，数据只保存在本机。",
         actions = persistentListOf(
@@ -333,13 +425,19 @@ internal fun SalaryEntryDialog(
                 label = "取消",
                 role = MochiDialogActionRole.Cancel,
                 enabled = true,
-                onClick = onDismiss,
+                onClick = { if (visible) visible = false },
             ),
             MochiDialogAction(
                 label = "保存",
                 role = MochiDialogActionRole.Default,
                 enabled = canSave,
-                onClick = { onSave(cents ?: 0L) },
+                onClick = {
+                    val amount = cents
+                    if (visible && amount != null) {
+                        onSave(amount)
+                        visible = false
+                    }
+                },
             ),
         ),
         content = {
@@ -358,7 +456,13 @@ internal fun SalaryEntryDialog(
                     imeAction = ImeAction.Done,
                 ),
                 keyboardActions = KeyboardActions(
-                    onDone = { if (canSave) onSave(cents) },
+                    onDone = {
+                        val amount = cents
+                        if (visible && amount != null) {
+                            onSave(amount)
+                            visible = false
+                        }
+                    },
                 ),
             )
             Text(

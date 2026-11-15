@@ -11,5 +11,5 @@ export PATH="$JAVA_HOME/bin:$PATH"
 cd "$ROOT/android-mochi"
 "$ROOT/.toolchain/gradle/gradle-8.13/bin/gradle" :app:assembleRelease --no-daemon --console=plain
 mkdir -p "$ROOT/dist"
-cp app/build/outputs/apk/release/app-release.apk "$ROOT/dist/Cadence-2.6.4-Android.apk"
-echo "$ROOT/dist/Cadence-2.6.4-Android.apk"
+cp app/build/outputs/apk/release/app-release.apk "$ROOT/dist/Cadence-2.6.5-Android.apk"
+echo "$ROOT/dist/Cadence-2.6.5-Android.apk"

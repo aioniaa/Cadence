@@ -11,6 +11,14 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
     ChangelogEntry(
         version = AppInfo.version,
         current = true,
+        updates = listOf(
+            "工资页年/月选择改为下拉菜单，可直接跳到指定年月",
+            "非当前月时显示「回到本月」，一键回到当前年月",
+            "工资记录弹窗在保存、取消和返回时播放退场动画",
+        ),
+    ),
+    ChangelogEntry(
+        version = "2.6.4",
         fixes = listOf(
             "累计工资卡片的圆角与底色裁切对齐，不再出现边缘色块",
             "工资页和首页金额统一保留两位小数，整元也显示 .00",

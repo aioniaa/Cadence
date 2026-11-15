@@ -359,7 +359,6 @@ internal fun HomePage(
                 onSave = { cents ->
                     update(state.withSalary(salaryKey, cents))
                     toast.show(if (cents > 0) "已记录本月工资" else "已清除本月工资")
-                    salaryOpen = false
                 },
             )
         }
