@@ -116,7 +116,6 @@ internal fun SettingsPage(
                 MochiListRow(title = "应用", value = "Cadence")
                 MochiListRow(
                     title = "版本",
-                    subtitle = if (checkingUpdate) "正在检查更新" else "点击检查更新",
                     value = if (checkingUpdate) "检查中…" else AppInfo.version,
                     enabled = !checkingUpdate,
                     trailing = {

@@ -3,6 +3,7 @@ package com.banbiao.app.ui
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.SystemClock
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,6 +60,9 @@ import com.banbiao.app.data.StateStore
 import com.banbiao.app.core.IslandNotifier
 import com.banbiao.app.core.UpdateManager
 import com.banbiao.app.data.ThemeMode
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 internal val LightAccent = Color(0xFFB56576)
@@ -103,21 +107,60 @@ fun CadenceRoot(initialState: AppState) {
     }
     var updateInfo by remember { mutableStateOf<UpdateManager.Update?>(null) }
     var downloadingUpdate by remember { mutableStateOf(false) }
+    var downloadingVersion by remember { mutableStateOf<String?>(null) }
     var checkingUpdate by remember { mutableStateOf(false) }
     var updateProgress by remember { mutableFloatStateOf(0f) }
+    var downloadJob by remember { mutableStateOf<Job?>(null) }
     val updateScope = rememberCoroutineScope()
     fun checkForUpdates(manual: Boolean) {
         if (checkingUpdate || downloadingUpdate) return
         checkingUpdate = true
         updateScope.launch {
-            val found = UpdateManager.checkForUpdate(APP_VERSION)
+            val started = SystemClock.elapsedRealtime()
+            val result = UpdateManager.checkForUpdate(APP_VERSION)
+            val elapsed = SystemClock.elapsedRealtime() - started
+            if (elapsed < 3000L) delay(3000L - elapsed)
             checkingUpdate = false
-            if (found != null) {
-                updateInfo = found
-            } else if (manual) {
-                Toast.makeText(context, "当前已是最新版本或网络不可用", Toast.LENGTH_SHORT).show()
+            when (result) {
+                is UpdateManager.CheckResult.Available -> updateInfo = result.update
+                UpdateManager.CheckResult.UpToDate -> if (manual) {
+                    Toast.makeText(context, "当前已经是最新版", Toast.LENGTH_SHORT).show()
+                }
+                is UpdateManager.CheckResult.Failed -> if (manual) {
+                    Toast.makeText(context, result.message, Toast.LENGTH_LONG).show()
+                }
             }
         }
+    }
+    fun startUpdateDownload() {
+        val info = updateInfo ?: return
+        updateInfo = null
+        downloadingVersion = info.version
+        downloadingUpdate = true
+        updateProgress = 0f
+        downloadJob = updateScope.launch {
+            try {
+                val file = UpdateManager.download(context, info) { updateProgress = it }
+                downloadingUpdate = false
+                downloadingVersion = null
+                downloadJob = null
+                UpdateManager.install(context, file)
+            } catch (error: CancellationException) {
+                // cancelUpdateDownload already reset the visible state.
+            } catch (error: Exception) {
+                downloadingUpdate = false
+                downloadingVersion = null
+                downloadJob = null
+                Toast.makeText(context, "更新下载失败：${error.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    fun cancelUpdateDownload() {
+        downloadJob?.cancel()
+        downloadJob = null
+        downloadingUpdate = false
+        downloadingVersion = null
+        updateProgress = 0f
     }
     LaunchedEffect(Unit) {
         checkForUpdates(false)
@@ -194,81 +237,75 @@ fun CadenceRoot(initialState: AppState) {
                 }
             }
         }
-        UpdatePrompt(
-            info = updateInfo,
-            downloading = downloadingUpdate,
+        UpdateAvailableDialog(
+            update = updateInfo,
+            onDismiss = { updateInfo = null },
+            onUpdate = ::startUpdateDownload,
+        )
+        UpdateDownloadDialog(
+            visible = downloadingUpdate,
+            version = downloadingVersion.orEmpty(),
             progress = updateProgress,
-            onDismiss = { if (!downloadingUpdate) updateInfo = null },
-            onDownload = {
-                val info = updateInfo ?: return@UpdatePrompt
-                downloadingUpdate = true
-                updateProgress = 0f
-                updateScope.launch {
-                    try {
-                        val file = UpdateManager.download(context, info) { updateProgress = it }
-                        downloadingUpdate = false
-                        updateInfo = null
-                        UpdateManager.install(context, file)
-                    } catch (error: Exception) {
-                        downloadingUpdate = false
-                        Toast.makeText(context, "更新下载失败：${error.message}", Toast.LENGTH_LONG).show()
-                    }
-                }
-            },
+            onCancel = ::cancelUpdateDownload,
         )
     }
 }
 
 @Composable
-private fun UpdatePrompt(
-    info: UpdateManager.Update?,
-    downloading: Boolean,
-    progress: Float,
+private fun UpdateAvailableDialog(
+    update: UpdateManager.Update?,
     onDismiss: () -> Unit,
-    onDownload: () -> Unit,
+    onUpdate: () -> Unit,
 ) {
-    val update = info ?: return
+    if (update == null) return
     MochiDialog(
         visible = true,
         onDismissRequest = onDismiss,
         title = "发现新版本 ${update.version}",
-        message = if (downloading) {
-            "正在下载 ${(progress * 100).toInt()}%\n\n${update.notes}"
-        } else {
-            update.notes.ifBlank { "有新版本可用，是否现在更新？" }
-        },
-        actions = if (downloading) {
-            persistentListOf(
-                MochiDialogAction(
-                    label = "下载中…",
-                    role = MochiDialogActionRole.Default,
-                    enabled = false,
-                    onClick = {},
-                ),
-            )
-        } else {
-            persistentListOf(
-                MochiDialogAction(
-                    label = "稍后",
-                    role = MochiDialogActionRole.Cancel,
-                    enabled = true,
-                    onClick = onDismiss,
-                ),
-                MochiDialogAction(
-                    label = "立即更新",
-                    role = MochiDialogActionRole.Default,
-                    enabled = true,
-                    onClick = onDownload,
-                ),
-            )
-        },
+        message = update.notes.ifBlank { "有新版本可用，是否现在更新？" },
+        actions = persistentListOf(
+            MochiDialogAction(
+                label = "暂不更新",
+                role = MochiDialogActionRole.Cancel,
+                enabled = true,
+                onClick = onDismiss,
+            ),
+            MochiDialogAction(
+                label = "立即更新",
+                role = MochiDialogActionRole.Default,
+                enabled = true,
+                onClick = onUpdate,
+            ),
+        ),
+    )
+}
+
+@Composable
+private fun UpdateDownloadDialog(
+    visible: Boolean,
+    version: String,
+    progress: Float,
+    onCancel: () -> Unit,
+) {
+    if (!visible) return
+    MochiDialog(
+        visible = true,
+        onDismissRequest = onCancel,
+        title = "正在下载 $version",
+        message = "已下载 ${(progress * 100).toInt()}%",
+        actions = persistentListOf(
+            MochiDialogAction(
+                label = "取消下载",
+                role = MochiDialogActionRole.Cancel,
+                enabled = true,
+                onClick = onCancel,
+            ),
+        ),
         content = {
-            if (downloading) {
-                MochiProgressBar(
-                    progress = progress,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            MochiProgressBar(
+                progress = progress,
+                modifier = Modifier.fillMaxWidth(),
+            )
         },
     )
 }

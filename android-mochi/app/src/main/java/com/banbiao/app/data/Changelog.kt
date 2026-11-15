@@ -12,6 +12,18 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
         version = AppInfo.version,
         current = true,
         updates = listOf(
+            "更新提示拆分为可用更新弹窗和下载进度弹窗",
+            "下载进度弹窗支持随时取消",
+            "版本号改为单行并垂直居中",
+            "检查更新 loading 至少显示 3 秒",
+        ),
+        fixes = listOf(
+            "明确区分网络不可用、检查失败和已是最新版本",
+        ),
+    ),
+    ChangelogEntry(
+        version = "2.5.1",
+        updates = listOf(
             "设置版本行支持点击检查更新，检查时显示加载动画",
             "更新弹窗增加 Mochi 下载进度条",
             "下载完成后自动调起系统安装器",
