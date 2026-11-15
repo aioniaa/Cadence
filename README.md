@@ -1,6 +1,6 @@
 # Cadence
 
-按日期排班的极简班表。Android 2.5.0 使用原生 Kotlin + Jetpack Compose，界面组件来自 [mochi-compose 0.2.0](https://github.com/feice11/mochi-compose)，排班投影与倒计时核心用 Rust 实现。macOS 1.4.1 保留桌面版和桌面小组件。
+按日期排班的极简班表。Android 2.5.1 使用原生 Kotlin + Jetpack Compose，界面组件来自 [mochi-compose 0.2.0](https://github.com/feice11/mochi-compose)，排班投影与倒计时核心用 Rust 实现。macOS 1.4.1 保留桌面版和桌面小组件。
 
 > **技术说明**：mochi-compose 是 Kotlin / Jetpack Compose 组件库，无法从 Rust 直接调用。因此采用 **UI = Kotlin + Compose + Mochi，核心 = Rust + JNI**。这样既能严格使用组件库，又能把日期投影、自动轮班和倒计时放进 Rust。
 
@@ -16,14 +16,14 @@
 
 黑色到深灰的渐变背景 + 单个粗体连笔 C，代表 Cadence；没有额外图形、文字或拼接。Android 使用自适应图标、单色主题图标和旧版 PNG 图标。
 
-## Android 2.5.0
+## Android 2.5.1
 
 ### 三个页面 + 悬浮底栏
 
 - **主页**：只放倒计时和日历；没有设置入口、时间按钮或折叠大标题，页面本身不滚动，拖动不会改变界面结构。
 - **班次**：添加、改名、删除自定义班次；修改开始/结束时间；开启和编辑自动轮班。
 - **设置**：按钮点击切换浅色/深色、应用信息、树状更新日志、超级岛开关。每次发布必须同步追加更新日志。
-- **应用内更新**：启动时读取 GitHub Releases 最新版本，发现新版本后用 MochiDialog 提示，应用内下载 APK 并调起系统安装器。
+- **应用内更新**：启动时读取 GitHub Releases 最新版本；设置里点版本行可手动检查。检查中版本号旁显示加载动画，发现更新后用 MochiDialog 提示，带下载进度条，下载完自动调起系统安装器。
 - **字体**：恢复原字体，数字启用 tnum 等宽特性，避免宽度跳动；按钮统一液态玻璃。
 - **全屏页面**：日详情、班次、自动轮班、更新日志的标题始终带半透明渐变和边缘模糊，内容可从标题背后通过。
 - **休假**：日期详情用 `MochiListDisclosure` 在同一容器内展开 MochiCalendar 日期范围选择，带展开动画；未点右上角确认前不会写入休假。确认在右上角、关闭在左上角，按钮使用玻璃设计。
@@ -100,11 +100,11 @@ Rust 动态读取 `shiftTypes`，支持任意班次 ID、名称和时间；旧�
 
 ### Android
 
-1. 安装 `Cadence-2.5.0-Android.apk`
+1. 安装 `Cadence-2.5.1-Android.apk`
 2. Android 8.0（API 26）及以上
 3. 覆盖安装旧版即可；首次启动会迁移旧 WebView 排班数据
 
-APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCode 44，可直接覆盖 2.1.x / 2.0.x / 1.3.2。
+APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCode 45，可直接覆盖 2.1.x / 2.0.x / 1.3.2。
 
 ### macOS
 
@@ -126,7 +126,7 @@ APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCo
 脚本会编译 Rust 两个 ABI、复制 `.so`、构建 release APK，并输出：
 
 ```text
-dist/Cadence-2.5.0-Android.apk
+dist/Cadence-2.5.1-Android.apk
 ```
 
 如果 Rust 尚未安装：
@@ -170,7 +170,7 @@ dist/                   安装包
 
 ## 测试
 
-- Android 2.5.0 release 在 Android 15 模拟器安装运行；验证三个 Tab、悬浮底栏、无卡片主页、上班前充能/下班递减进度、休息日下次上班倒计时、混色倒计时、左右滑动月历、主题和 Rust JNI。
+- Android 2.5.1 release 在 Android 15 模拟器安装运行；验证三个 Tab、悬浮底栏、无卡片主页、上班前充能/下班递减进度、休息日下次上班倒计时、混色倒计时、左右滑动月历、主题和 Rust JNI。
 - 自定义班次：实际添加 `Early 09:00–18:00`，在日期上排班，主页倒计时显示 `Early · 09:00–18:00`。
 - 休假：日期详情可设置/取消休假，选中后可用日期范围选择器批量设置；Rust 测试验证休假暂停、假期续接和自动轮班暂停。
 - 日历点击：实际点选 11 月 15 日能打开日期详情并修改班次；批量休假入口保留在日历底部。

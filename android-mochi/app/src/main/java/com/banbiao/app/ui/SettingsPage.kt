@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import ui.feice.mochi.basic.MochiActivityIndicator
 import ui.feice.mochi.basic.MochiButton
 import ui.feice.mochi.basic.MochiButtonStyle
 import ui.feice.mochi.basic.MochiSheet
@@ -36,6 +37,8 @@ internal fun SettingsPage(
     changeTheme: (ThemeMode) -> Unit,
     dark: Boolean,
     onToggleIsland: (Boolean) -> Unit,
+    checkingUpdate: Boolean,
+    onCheckUpdate: () -> Unit,
 ) {
     val sheetState = rememberMochiSheetState()
     var changelogOpen by remember { mutableStateOf(false) }
@@ -106,9 +109,28 @@ internal fun SettingsPage(
             }
         }
         item {
-            MochiListSection(header = "关于") {
+            MochiListSection(
+                header = "关于",
+                footer = "点击版本号检查更新",
+            ) {
                 MochiListRow(title = "应用", value = "Cadence")
-                MochiListRow(title = "版本", value = AppInfo.version)
+                MochiListRow(
+                    title = "版本",
+                    subtitle = if (checkingUpdate) "正在检查更新" else "点击检查更新",
+                    value = if (checkingUpdate) "检查中…" else AppInfo.version,
+                    enabled = !checkingUpdate,
+                    trailing = {
+                        if (checkingUpdate) {
+                            MochiActivityIndicator(
+                                size = 16.dp,
+                                color = MochiTheme.colorScheme.primary,
+                            )
+                        } else {
+                            MochiIonicon("chevron-forward", size = 14.dp)
+                        }
+                    },
+                    onClick = onCheckUpdate,
+                )
                 MochiListRow(title = "配色", value = "玫瑰 + 灰度")
                 MochiListRow(title = "数据", value = "仅保存在本机")
                 MochiListRow(

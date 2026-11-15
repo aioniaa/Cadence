@@ -12,13 +12,19 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
         version = AppInfo.version,
         current = true,
         updates = listOf(
+            "设置版本行支持点击检查更新，检查时显示加载动画",
+            "更新弹窗增加 Mochi 下载进度条",
+            "下载完成后自动调起系统安装器",
+        ),
+    ),
+    ChangelogEntry(
+        version = "2.5.0",
+        updates = listOf(
             "启动时检查 GitHub Release，可在应用内下载并安装更新",
             "上班前与休息时进度逐渐充满，下班时逐渐减少",
             "休息日显示距离下次上班的倒计时",
         ),
-        fixes = listOf(
-            "更新下载和安装不再跳转浏览器",
-        ),
+        fixes = listOf("更新下载和安装不再跳转浏览器"),
     ),
     ChangelogEntry(
         version = "2.4.20",

@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
@@ -32,6 +33,7 @@ import kotlinx.collections.immutable.persistentListOf
 import ui.feice.mochi.basic.MochiDialog
 import ui.feice.mochi.basic.MochiDialogAction
 import ui.feice.mochi.basic.MochiDialogActionRole
+import ui.feice.mochi.basic.MochiProgressBar
 import ui.feice.mochi.basic.MochiTabItem
 import ui.feice.mochi.basic.Text
 import ui.feice.mochi.effect.content.MochiThemeRevealHost
@@ -101,10 +103,24 @@ fun CadenceRoot(initialState: AppState) {
     }
     var updateInfo by remember { mutableStateOf<UpdateManager.Update?>(null) }
     var downloadingUpdate by remember { mutableStateOf(false) }
+    var checkingUpdate by remember { mutableStateOf(false) }
     var updateProgress by remember { mutableFloatStateOf(0f) }
     val updateScope = rememberCoroutineScope()
+    fun checkForUpdates(manual: Boolean) {
+        if (checkingUpdate || downloadingUpdate) return
+        checkingUpdate = true
+        updateScope.launch {
+            val found = UpdateManager.checkForUpdate(APP_VERSION)
+            checkingUpdate = false
+            if (found != null) {
+                updateInfo = found
+            } else if (manual) {
+                Toast.makeText(context, "当前已是最新版本或网络不可用", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
     LaunchedEffect(Unit) {
-        updateInfo = UpdateManager.checkForUpdate(APP_VERSION)
+        checkForUpdates(false)
     }
 
     val reveal = rememberMochiThemeRevealState()
@@ -170,6 +186,8 @@ fun CadenceRoot(initialState: AppState) {
                                 changeTheme = ::changeTheme,
                                 dark = dark,
                                 onToggleIsland = ::toggleIsland,
+                                checkingUpdate = checkingUpdate,
+                                onCheckUpdate = { checkForUpdates(true) },
                             )
                         }
                     }
@@ -243,6 +261,14 @@ private fun UpdatePrompt(
                     onClick = onDownload,
                 ),
             )
+        },
+        content = {
+            if (downloading) {
+                MochiProgressBar(
+                    progress = progress,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         },
     )
 }

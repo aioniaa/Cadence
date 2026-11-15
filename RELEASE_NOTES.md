@@ -1,24 +1,16 @@
-# Cadence 2.5.0
+# Cadence 2.5.1
 
 ## Highlights
 
-- **In-app updates**: on launch, Cadence checks the latest GitHub Release, shows a Mochi dialog, downloads the APK inside the app, and hands it to the Android package installer.
-- **Countdown progress semantics**:
-  - before work: the semicircle fills up as the start countdown decreases;
-  - during work: the semicircle drains as the off-work countdown decreases;
-  - rest days: shows a countdown to the next shift and fills with the same waiting logic.
-- Round-dot separators between hours, minutes and seconds.
-- Single-letter **C** icon with black/charcoal gradient and a bold connected script mark.
-- Mochi glass presentation and the 2.4.x UI refinements remain.
-
-## Update note
-
-Android still requires the one-time “install unknown apps” permission for the package installer. The download itself happens inside Cadence; it does not open the GitHub release page.
+- **Manual update check**: tap the version row in Settings → About. A small subtitle says “点击检查更新”; while checking, the version value shows a Mochi activity indicator and “检查中…”.
+- **Download progress**: the update dialog now includes a Mochi progress bar.
+- **Automatic hand-off**: after the APK downloads, Cadence launches the system package installer automatically. Android's one-time “install unknown apps” confirmation still applies.
+- Startup update checks and in-app download/install from 2.5.0 remain.
 
 ## Assets
 
-- `Cadence-2.5.0-Android.apk`
-- `Cadence-2.5.0-source.zip`
+- `Cadence-2.5.1-Android.apk`
+- `Cadence-2.5.1-source.zip`
 - `SHA256SUMS.txt`
 - macOS 1.4.1 DMG/ZIP
 
