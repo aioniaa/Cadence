@@ -4,9 +4,6 @@
 
 > **技术说明**：mochi-compose 是 Kotlin / Jetpack Compose 组件库，无法从 Rust 直接调用。因此采用 **UI = Kotlin + Compose + Mochi，核心 = Rust + JNI**。这样既能严格使用组件库，又能把日期投影、自动轮班和倒计时放进 Rust。
 
-<p align="center">
-  <img src="screenshots/banbiao-macos-14.png" width="76%" alt="macOS 版班表">
-</p>
 
 ### 应用图标
 
