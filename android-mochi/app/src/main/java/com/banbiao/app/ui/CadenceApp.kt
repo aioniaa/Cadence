@@ -224,6 +224,10 @@ fun CadenceRoot(initialState: AppState) {
                                 state = state,
                                 update = { next -> update(next) },
                             )
+                            2 -> SalaryPage(
+                                state = state,
+                                update = { next -> update(next) },
+                            )
                             else -> SettingsPage(
                                 state = state,
                                 changeTheme = ::changeTheme,
@@ -346,6 +350,11 @@ private fun cadenceTabs(): ImmutableList<MochiTabItem> = persistentListOf(
         label = "班次",
         selectedIcon = { tint -> MochiIonicon("repeat", tint = tint, size = 22.dp) },
         icon = { tint -> MochiIonicon("repeat-outline", tint = tint, size = 22.dp) },
+    ),
+    MochiTabItem(
+        label = "工资",
+        selectedIcon = { tint -> MochiIonicon("wallet", tint = tint, size = 22.dp) },
+        icon = { tint -> MochiIonicon("wallet-outline", tint = tint, size = 22.dp) },
     ),
     MochiTabItem(
         label = "设置",

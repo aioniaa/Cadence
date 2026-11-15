@@ -123,10 +123,33 @@ data class AppState(
     val islandEnabled: Boolean = false,
     /** Date keys marked as personal leave; auto rotation pauses across them. */
     val leaves: Set<String> = emptySet(),
+    /** Month key (yyyy-MM) -> salary in cents. Kept local only. */
+    val salaries: Map<String, Long> = emptyMap(),
 ) {
     fun shift(id: String?): ShiftDef? = shiftTypes.firstOrNull { it.id == id }
 
     fun isLeave(key: String): Boolean = key in leaves
+
+    fun salaryOf(key: String): Long = salaries[key] ?: 0L
+
+    fun salaryYear(year: Int): Long =
+        salaries.entries.filter { it.key.startsWith(salaryPrefix(year)) }.sumOf { it.value }
+
+    fun salaryMonths(year: Int): List<Pair<Int, Long>> {
+        val prefix = salaryPrefix(year)
+        return salaries.entries
+            .mapNotNull { (key, cents) ->
+                if (!key.startsWith(prefix)) return@mapNotNull null
+                val month = key.substringAfter('-').toIntOrNull() ?: return@mapNotNull null
+                if (month !in 1..12) null else month to cents
+            }
+            .sortedBy { it.first }
+    }
+
+    fun totalSalary(): Long = salaries.values.sumOf { it }
+
+    fun withSalary(key: String, cents: Long): AppState =
+        copy(salaries = if (cents <= 0L) salaries - key else salaries + (key to cents))
 
     fun toggleLeave(key: String): AppState {
         return if (key in leaves) {
@@ -176,7 +199,7 @@ data class AppState(
         val shiftJson = JSONObject()
         assignments.forEach { (key, shiftId) -> shiftJson.put(key, shiftId) }
         return JSONObject()
-            .put("version", 5)
+            .put("version", 6)
             .put("shifts", shiftJson)
             .put("shiftTypes", JSONArray().apply { shiftTypes.forEach { put(it.toJson()) } })
             .put("rule", rule?.toJson() ?: JSONObject.NULL)
@@ -184,10 +207,20 @@ data class AppState(
             .put("islandEnabled", islandEnabled)
             .put("theme", themeMode.storage)
             .put("leaves", JSONArray().apply { leaves.sorted().forEach { put(it) } })
+            .put("salaries", JSONObject().apply {
+                salaries.toSortedMap().forEach { (key, cents) -> put(key, cents) }
+            })
     }
 
     companion object {
         private val KEY = Regex("^\\d{4}-\\d{2}-\\d{2}$")
+        private val SALARY_KEY = Regex("^\\d{4}-(0[1-9]|1[0-2])$")
+
+        private fun salaryPrefix(year: Int): String =
+            year.toString().padStart(4, '0') + "-"
+
+        fun salaryKey(year: Int, month: Int): String =
+            salaryPrefix(year) + month.toString().padStart(2, '0')
 
         fun newShiftId(): String = "s_" + UUID.randomUUID().toString().replace("-", "").take(10)
 
@@ -252,6 +285,14 @@ data class AppState(
                         if (KEY.matches(key)) add(key)
                     }
                 }
+                val salaries = buildMap {
+                    obj.optJSONObject("salaries")?.let { map ->
+                        map.keys().forEach { key ->
+                            val cents = map.optLong(key, 0L)
+                            if (SALARY_KEY.matches(key) && cents > 0L) put(key, cents)
+                        }
+                    }
+                }
                 AppState(
                     assignments = assignments,
                     shiftTypes = types,
@@ -260,6 +301,7 @@ data class AppState(
                     islandEnabled = obj.optBoolean("islandEnabled", false),
                     themeMode = ThemeMode.fromStorage(obj.optString("theme")),
                     leaves = leaves,
+                    salaries = salaries,
                 )
             }.getOrElse { AppState() }
         }

@@ -11,9 +11,15 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
     ChangelogEntry(
         version = AppInfo.version,
         current = true,
-        fixes = listOf(
-            "鸣谢改为两行显示，右侧链接保持垂直居中",
+        updates = listOf(
+            "首页底部新增本月工资入口，用弹窗记录实际到手金额",
+            "新增工资页：累计工资、按月/按年汇总和年度明细",
+            "工资数据只保存在本机，可随时修改",
         ),
+    ),
+    ChangelogEntry(
+        version = "2.6.2",
+        fixes = listOf("鸣谢改为两行显示，右侧链接保持垂直居中"),
     ),
     ChangelogEntry(
         version = "2.6.1",

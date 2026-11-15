@@ -111,6 +111,7 @@ internal fun HomePage(
     var viewMonth by rememberSaveable { mutableIntStateOf(today.monthValue) }
     var selectedKey by rememberSaveable { mutableStateOf(todayKey) }
     var dayOpen by remember { mutableStateOf(false) }
+    var salaryOpen by remember { mutableStateOf(false) }
     var rangeSelection by remember { mutableStateOf<MochiDateSelection?>(null) }
     val sheetState = rememberMochiSheetState()
     val toast = rememberMochiToastState()
@@ -120,6 +121,8 @@ internal fun HomePage(
     }
     val selectedDate = runCatching { LocalDate.parse(selectedKey) }.getOrNull() ?: today
     val leave = state.isLeave(selectedKey)
+    val salaryKey = AppState.salaryKey(today.year, today.monthValue)
+    val salary = state.salaryOf(salaryKey)
     val effectiveId = if (leave) null else state.assignments[selectedKey]
         ?: cells.firstOrNull { it.key == selectedKey }?.shiftId
 
@@ -165,6 +168,8 @@ internal fun HomePage(
                     rangeSelection = null
                     dayOpen = true
                 },
+                salary = salary,
+                onSalaryClick = { salaryOpen = true },
             )
         }
 
@@ -346,6 +351,18 @@ internal fun HomePage(
                 }
             }
         }
+        if (salaryOpen) {
+            SalaryEntryDialog(
+                monthKey = salaryKey,
+                initialCents = salary,
+                onDismiss = { salaryOpen = false },
+                onSave = { cents ->
+                    update(state.withSalary(salaryKey, cents))
+                    toast.show(if (cents > 0) "已记录本月工资" else "已清除本月工资")
+                    salaryOpen = false
+                },
+            )
+        }
         MochiToastHost(toast)
     }
 }
@@ -376,6 +393,8 @@ private fun SunsetCalendarCard(
     onNext: () -> Unit,
     onToday: () -> Unit,
     onSelect: (String) -> Unit,
+    salary: Long,
+    onSalaryClick: () -> Unit,
 ) {
     var dragAmount by remember { mutableFloatStateOf(0f) }
     val density = LocalDensity.current
@@ -473,10 +492,9 @@ private fun SunsetCalendarCard(
                         color = MochiTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.weight(1f))
-                    Text(
-                        "班次深浅区分",
-                        style = MochiTheme.textStyles.footnote,
-                        color = MochiTheme.colorScheme.onSurfaceVariant,
+                    SalaryEntryChip(
+                        cents = salary,
+                        onClick = onSalaryClick,
                     )
                 }
             }
@@ -743,6 +761,33 @@ private fun TodayShiftCard(state: AppState, todayKey: String) {
                 modifier = Modifier.padding(top = 1.dp),
             )
         }
+    }
+}
+
+@Composable
+private fun SalaryEntryChip(cents: Long, onClick: () -> Unit) {
+    val scheme = MochiTheme.colorScheme
+    Row(
+        Modifier
+            .clip(MochiTheme.shapes.small)
+            .background(scheme.surfaceContainerLow.copy(alpha = 0.72f))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 9.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MochiIonicon("wallet-outline", size = 13.dp, tint = scheme.primary)
+        Spacer(Modifier.width(4.dp))
+        Text(
+            if (cents > 0) "本月 ${formatSalaryCompact(cents)}" else "记录本月工资",
+            style = MochiTheme.textStyles.footnote.copy(fontWeight = FontWeight.Medium),
+            color = scheme.onSurface,
+        )
+        Spacer(Modifier.width(2.dp))
+        MochiIonicon(
+            "chevron-forward",
+            size = 11.dp,
+            tint = scheme.onSurfaceVariant.copy(alpha = 0.7f),
+        )
     }
 }
 
