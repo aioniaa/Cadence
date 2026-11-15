@@ -50,7 +50,9 @@ import ui.feice.mochi.basic.MochiIconButton
 import ui.feice.mochi.basic.MochiItem
 import ui.feice.mochi.basic.MochiSegmentedControl
 import ui.feice.mochi.basic.Text
+import ui.feice.mochi.effect.content.MochiBlurCrossfade
 import ui.feice.mochi.effect.content.MochiBlurText
+import ui.feice.mochi.effect.content.MochiBlurTransitions
 import ui.feice.mochi.effect.content.MochiCounterText
 import ui.feice.mochi.icons.MochiIonicon
 import ui.feice.mochi.list.MochiListCard
@@ -67,6 +69,13 @@ private const val MAX_SALARY_YEAR = 2100
 private const val MAX_SALARY_CENTS = 100_000_000_000L // 10 亿元
 private val INPUT_AMOUNT = Regex("^\\d{0,9}(\\.\\d{0,2})?$")
 
+private data class SalaryActionState(
+    val current: Boolean,
+    val showBack: Boolean,
+    val showEdit: Boolean,
+    val hasRecord: Boolean,
+)
+
 @Composable
 internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
     val today = LocalDate.now()
@@ -81,6 +90,12 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
     val selectedTotal = if (mode == 0) state.salaryOf(selectedMonthKey) else state.salaryYear(year)
     val recordedMonths = state.salaryMonths(year)
     val currentPeriod = year == today.year && (mode == 1 || month == today.monthValue)
+    val actionState = SalaryActionState(
+        current = currentPeriod,
+        showBack = !currentPeriod,
+        showEdit = mode == 0,
+        hasRecord = selectedTotal > 0,
+    )
     val yearItems = remember {
         (MIN_SALARY_YEAR..MAX_SALARY_YEAR).map { MochiItem("${it}年") }.toImmutableList()
     }
@@ -139,26 +154,47 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                             },
                         ) { MochiIonicon("chevron-back", size = 20.dp) }
 
-                        Column(
+                        Row(
                             Modifier.weight(1f),
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
+                            MochiDropdown(
+                                expanded = openMenu == "year",
+                                onExpandedChange = { openMenu = if (it) "year" else null },
+                                items = yearItems,
+                                onItemClick = { index ->
+                                    year = MIN_SALARY_YEAR + index
+                                },
+                                selectedIndex = year - MIN_SALARY_YEAR,
+                                modifier = Modifier.height(40.dp),
                             ) {
+                                Text(
+                                    "${year}年",
+                                    style = MochiTheme.textStyles.body.copy(fontSize = 14.sp),
+                                    color = MochiTheme.colorScheme.onSurface,
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                MochiIonicon(
+                                    "chevron-down",
+                                    size = 12.dp,
+                                    tint = MochiTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (mode == 0) {
+                                Spacer(Modifier.width(6.dp))
                                 MochiDropdown(
-                                    expanded = openMenu == "year",
-                                    onExpandedChange = { openMenu = if (it) "year" else null },
-                                    items = yearItems,
+                                    expanded = openMenu == "month",
+                                    onExpandedChange = { openMenu = if (it) "month" else null },
+                                    items = monthItems,
                                     onItemClick = { index ->
-                                        year = MIN_SALARY_YEAR + index
+                                        month = index + 1
                                     },
-                                    selectedIndex = year - MIN_SALARY_YEAR,
+                                    selectedIndex = month - 1,
                                     modifier = Modifier.height(40.dp),
                                 ) {
                                     Text(
-                                        "${year}年",
+                                        "${month}月",
                                         style = MochiTheme.textStyles.body.copy(fontSize = 14.sp),
                                         color = MochiTheme.colorScheme.onSurface,
                                     )
@@ -169,52 +205,7 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                                         tint = MochiTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
-                                if (mode == 0) {
-                                    Spacer(Modifier.width(6.dp))
-                                    MochiDropdown(
-                                        expanded = openMenu == "month",
-                                        onExpandedChange = { openMenu = if (it) "month" else null },
-                                        items = monthItems,
-                                        onItemClick = { index ->
-                                            month = index + 1
-                                        },
-                                        selectedIndex = month - 1,
-                                        modifier = Modifier.height(40.dp),
-                                    ) {
-                                        Text(
-                                            "${month}月",
-                                            style = MochiTheme.textStyles.body.copy(fontSize = 14.sp),
-                                            color = MochiTheme.colorScheme.onSurface,
-                                        )
-                                        Spacer(Modifier.width(4.dp))
-                                        MochiIonicon(
-                                            "chevron-down",
-                                            size = 12.dp,
-                                            tint = MochiTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
-                                }
                             }
-                            Spacer(Modifier.height(8.dp))
-                            MochiCounterText(
-                                text = formatSalary(selectedTotal),
-                                direction = 1,
-                                style = MochiTheme.textStyles.titleLarge.copy(
-                                    fontSize = if (formatSalary(selectedTotal).length > 14) 24.sp else 30.sp,
-                                    fontWeight = FontWeight.Bold,
-                                ),
-                                color = MochiTheme.colorScheme.primary,
-                            )
-                            Text(
-                                if (mode == 0) {
-                                    if (selectedTotal > 0) "已记录" else "这个月还没有记录"
-                                } else {
-                                    "${recordedMonths.size} 个月有记录"
-                                },
-                                style = MochiTheme.textStyles.footnote,
-                                color = MochiTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(top = 2.dp),
-                            )
                         }
 
                         MochiIconButton(
@@ -234,39 +225,68 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                             },
                         ) { MochiIonicon("chevron-forward", size = 20.dp) }
                     }
-                    if (!currentPeriod || mode == 0) {
-                        Spacer(Modifier.height(8.dp))
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            if (!currentPeriod) {
-                                MochiButton(
-                                    onClick = {
-                                        mode = 0
-                                        year = today.year
-                                        month = today.monthValue
-                                    },
-                                    style = MochiButtonStyle.ClearGlass,
-                                    modifier = Modifier.weight(1f),
-                                ) {
-                                    Text("回到本月")
-                                }
-                            }
+                    Column(
+                        Modifier.fillMaxWidth().padding(vertical = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        MochiCounterText(
+                            text = formatSalary(selectedTotal),
+                            direction = 1,
+                            style = MochiTheme.textStyles.titleLarge.copy(
+                                fontSize = if (formatSalary(selectedTotal).length > 14) 24.sp else 30.sp,
+                                fontWeight = FontWeight.Bold,
+                            ),
+                            color = MochiTheme.colorScheme.primary,
+                        )
+                        Text(
                             if (mode == 0) {
-                                MochiButton(
-                                    onClick = { editingKey = selectedMonthKey },
-                                    style = MochiButtonStyle.ClearGlass,
-                                    modifier = Modifier.weight(1f),
-                                ) {
-                                    Text(
-                                        when {
-                                            selectedTotal > 0 && currentPeriod -> "修改这个月的工资"
-                                            selectedTotal > 0 -> "修改"
-                                            currentPeriod -> "录入这个月的工资"
-                                            else -> "录入"
+                                if (selectedTotal > 0) "已记录" else "这个月还没有记录"
+                            } else {
+                                "${recordedMonths.size} 个月有记录"
+                            },
+                            style = MochiTheme.textStyles.footnote,
+                            color = MochiTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 2.dp),
+                        )
+                    }
+                    MochiBlurCrossfade(
+                        targetState = actionState,
+                        transition = MochiBlurTransitions.Replace,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { actions ->
+                        if (actions.showBack || actions.showEdit) {
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                if (actions.showBack) {
+                                    MochiButton(
+                                        onClick = {
+                                            mode = 0
+                                            year = today.year
+                                            month = today.monthValue
                                         },
-                                    )
+                                        style = MochiButtonStyle.ClearGlass,
+                                        modifier = Modifier.weight(1f),
+                                    ) {
+                                        Text("回到本月")
+                                    }
+                                }
+                                if (actions.showEdit) {
+                                    MochiButton(
+                                        onClick = { editingKey = selectedMonthKey },
+                                        style = MochiButtonStyle.ClearGlass,
+                                        modifier = Modifier.weight(1f),
+                                    ) {
+                                        Text(
+                                            when {
+                                                actions.hasRecord && actions.current -> "修改这个月的工资"
+                                                actions.hasRecord -> "修改"
+                                                actions.current -> "录入这个月的工资"
+                                                else -> "录入"
+                                            },
+                                        )
+                                    }
                                 }
                             }
                         }

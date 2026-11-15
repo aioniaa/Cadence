@@ -12,6 +12,13 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
         version = AppInfo.version,
         current = true,
         updates = listOf(
+            "工资页年/月切换时，底部操作按钮使用 Mochi 模糊替换过渡",
+            "工资金额与「已记录」行的上下留白一致，金额视觉居中",
+        ),
+    ),
+    ChangelogEntry(
+        version = "2.6.6",
+        updates = listOf(
             "工资页年/月下拉选择更紧凑，并增加与金额之间的间距",
             "设置页暂时移除「上岛显示下班倒计时」入口",
         ),
