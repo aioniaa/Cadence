@@ -12,14 +12,20 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
         version = AppInfo.version,
         current = true,
         updates = listOf(
+            "更新弹窗只展示版本更新内容，不再带附件和安装说明",
+            "设置新增鸣谢，链接作者与 mochi-compose",
+            "开源许可证调整为 Apache-2.0，图标字体改用 OFL Pacifico",
+        ),
+    ),
+    ChangelogEntry(
+        version = "2.5.2",
+        updates = listOf(
             "更新提示拆分为可用更新弹窗和下载进度弹窗",
             "下载进度弹窗支持随时取消",
             "版本号改为单行并垂直居中",
             "检查更新 loading 至少显示 3 秒",
         ),
-        fixes = listOf(
-            "明确区分网络不可用、检查失败和已是最新版本",
-        ),
+        fixes = listOf("明确区分网络不可用、检查失败和已是最新版本"),
     ),
     ChangelogEntry(
         version = "2.5.1",

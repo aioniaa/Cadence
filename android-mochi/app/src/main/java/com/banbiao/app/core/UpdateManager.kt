@@ -78,7 +78,7 @@ object UpdateManager {
                     Update(
                         version = tag,
                         apkUrl = apk,
-                        notes = release.optString("body").trim().take(900),
+                        notes = conciseNotes(release.optString("body")),
                     ),
                 )
             } finally {
@@ -149,6 +149,27 @@ object UpdateManager {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(intent)
+    }
+
+    private fun conciseNotes(body: String): String {
+        val bullets = body.lineSequence()
+            .map { it.trim() }
+            .filter { line ->
+                line.startsWith("- ") || line.startsWith("* ") ||
+                    line.startsWith("• ") || line.startsWith("· ")
+            }
+            .map { line ->
+                line.removePrefix("- ").removePrefix("* ")
+                    .removePrefix("• ").removePrefix("· ").trim()
+            }
+            .filter { it.isNotBlank() }
+            .take(8)
+            .toList()
+        return if (bullets.isEmpty()) {
+            "有新版本可用，是否现在更新？"
+        } else {
+            bullets.joinToString("\n") { "• $it" }.take(600)
+        }
     }
 
     private fun isNewer(candidate: String, current: String): Boolean {

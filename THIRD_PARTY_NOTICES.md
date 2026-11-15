@@ -13,3 +13,8 @@ This project uses and/or includes source from:
 
 The copied files retain their original copyright and SPDX headers. See the upstream
 repository for the full Apache License 2.0 text.
+
+- **Pacifico** typeface (application icon lettering)
+  Copyright 2018 The Pacifico Project Authors, SIL Open Font License 1.1.
+  https://github.com/google/fonts/tree/main/ofl/pacifico
+  Full text: `licenses/Pacifico-OFL.txt`

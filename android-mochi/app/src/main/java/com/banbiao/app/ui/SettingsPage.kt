@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import ui.feice.mochi.basic.MochiActivityIndicator
 import ui.feice.mochi.basic.MochiButton
@@ -41,6 +42,7 @@ internal fun SettingsPage(
     onCheckUpdate: () -> Unit,
 ) {
     val sheetState = rememberMochiSheetState()
+    val uriHandler = LocalUriHandler.current
     var changelogOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(changelogOpen) {
@@ -105,6 +107,31 @@ internal fun SettingsPage(
                     subtitle = if (state.islandEnabled) "已开启" else "未开启",
                     checked = state.islandEnabled,
                     onClick = { onToggleIsland(!state.islandEnabled) },
+                )
+            }
+        }
+        item {
+            MochiListSection(header = "鸣谢") {
+                MochiListRow(
+                    title = "作者",
+                    subtitle = "aioniaa",
+                    value = "GitHub",
+                    chevron = true,
+                    onClick = { uriHandler.openUri("https://github.com/aioniaa") },
+                )
+                MochiListRow(
+                    title = "组件库",
+                    subtitle = "mochi-compose · feice11",
+                    value = "GitHub",
+                    chevron = true,
+                    onClick = { uriHandler.openUri("https://github.com/feice11/mochi-compose") },
+                )
+                MochiListRow(
+                    title = "开源许可证",
+                    subtitle = "Apache License 2.0",
+                    value = "查看",
+                    chevron = true,
+                    onClick = { uriHandler.openUri("https://www.apache.org/licenses/LICENSE-2.0") },
                 )
             }
         }
