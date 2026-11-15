@@ -287,6 +287,33 @@ fn project_days_value(state: &State, start_key: &str, count: i32) -> Value {
     Value::Array(days)
 }
 
+fn next_shift_start(state: &State, today_key: &str, now_seconds: i32) -> Option<(String, i32, String)> {
+    for offset in 0..15 {
+        let key = add_days(today_key, offset);
+        let Some((id, _)) = effective_shift(state, &key) else {
+            continue;
+        };
+        if id == "leave" || is_rest(state, &id) {
+            continue;
+        }
+        let (start, end) = time_for(state, &id);
+        let start_abs = offset * 86400 + (start * 60) as i64;
+        let now_abs = now_seconds as i64;
+        if start_abs > now_abs {
+            let meta = format!(
+                "{} · {:02}:{:02}–{:02}:{:02}",
+                shift_name(state, &id),
+                start / 60,
+                start % 60,
+                end / 60,
+                end % 60,
+            );
+            return Some((id, (start_abs - now_abs) as i32, meta));
+        }
+    }
+    None
+}
+
 fn countdown_value(state: &State, today_key: &str, now_seconds: i32) -> Value {
     let now = now_seconds.clamp(0, 86399);
     let yesterday = add_days(today_key, -1);
@@ -325,6 +352,17 @@ fn countdown_value(state: &State, today_key: &str, now_seconds: i32) -> Value {
         });
     }
     if is_rest(state, &id) {
+        if let Some((_next_id, seconds, meta)) = next_shift_start(state, today_key, now) {
+            return json!({
+                "kind": "rest",
+                "shift": id,
+                "source": source,
+                "label": "距离下次上班",
+                "seconds": seconds,
+                "progress": 0.0,
+                "meta": meta,
+            });
+        }
         return json!({"kind": "rest", "shift": id, "source": source, "label": "今天休息", "seconds": 0, "progress": 0.0, "meta": "全天"});
     }
     let (start_min, end_min) = time_for(state, &id);
@@ -460,6 +498,15 @@ mod tests {
     fn auto_rotation_can_be_paused() {
         let state = parse_state(r#"{"autoEnabled":false,"rule":{"segments":[{"shift":"morning","days":1}],"anchorKey":"2026-11-01","anchorIndex":0},"shiftTypes":[{"id":"morning","name":"白班","start":"08:00","end":"16:00"}]}"#);
         assert!(effective_shift(&state, "2026-11-03").is_none());
+    }
+
+    #[test]
+    fn rest_counts_down_to_next_shift() {
+        let state = parse_state(r#"{"rule":{"segments":[{"shift":"rest","days":1},{"shift":"morning","days":1}],"anchorKey":"2026-11-01","anchorIndex":0},"shiftTypes":[{"id":"morning","name":"白班","start":"08:00","end":"16:00"},{"id":"rest","name":"休息","rest":true}]}"#);
+        let value = countdown_value(&state, "2026-11-01", 20 * 3600);
+        assert_eq!(value["kind"], "rest");
+        assert_eq!(value["label"], "距离下次上班");
+        assert_eq!(value["seconds"], 12 * 3600);
     }
 
     #[test]

@@ -1,25 +1,24 @@
-# Cadence 2.4.20
+# Cadence 2.5.0
 
 ## Highlights
 
-- New single-letter **C** app icon: black-to-charcoal gradient with a bold connected script mark.
-- Home countdown moved slightly below the semicircle's visual centre.
-- Round-dot colon between hours, minutes and seconds.
-- Automatic rotation segments now use lighter, container-matched backgrounds in both light and dark mode.
-- Selected cycle-day tiles are white; unselected tiles are light grey.
-- Restored the original system typeface with tabular numbers (`tnum`) so digits stay aligned.
-- Glass buttons throughout the app.
-- Leave flow uses `MochiListDisclosure`; the date picker expands inline, only applies after confirmation, and supports cancelling leave.
-- Xiaomi HyperOS focus-notification payload (`miui.focus.param`) for the Super Island countdown.
+- **In-app updates**: on launch, Cadence checks the latest GitHub Release, shows a Mochi dialog, downloads the APK inside the app, and hands it to the Android package installer.
+- **Countdown progress semantics**:
+  - before work: the semicircle fills up as the start countdown decreases;
+  - during work: the semicircle drains as the off-work countdown decreases;
+  - rest days: shows a countdown to the next shift and fills with the same waiting logic.
+- Round-dot separators between hours, minutes and seconds.
+- Single-letter **C** icon with black/charcoal gradient and a bold connected script mark.
+- Mochi glass presentation and the 2.4.x UI refinements remain.
 
-## Xiaomi Super Island note
+## Update note
 
-The app now emits the official focus-notification payload and timer data. Xiaomi's Super Island is still controlled by the system. The app must be granted focus-notification permission by Xiaomi; without it, Android shows the ongoing fallback notification instead.
+Android still requires the one-time “install unknown apps” permission for the package installer. The download itself happens inside Cadence; it does not open the GitHub release page.
 
 ## Assets
 
-- `Cadence-2.4.20-Android.apk`
-- `Cadence-2.4.20-source.zip`
+- `Cadence-2.5.0-Android.apk`
+- `Cadence-2.5.0-source.zip`
 - `SHA256SUMS.txt`
 - macOS 1.4.1 DMG/ZIP
 

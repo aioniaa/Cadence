@@ -493,14 +493,14 @@ private fun SunsetHero(state: AppState, today: LocalDate) {
         }
     }
     val countdown = NativeCore.countdown(state, now.toLocalDate(), now.toLocalTime())
-    val clock = countdown.kind == "active" || countdown.kind == "before"
-    // The soda is a drain gauge: remaining time is the liquid level.
+    val clock = countdown.kind == "active" ||
+        countdown.kind == "before" ||
+        (countdown.kind == "rest" && countdown.seconds > 0)
+    // Active shifts drain; waiting for the next shift fills over a 24h window.
     val liquidTarget = when (countdown.kind) {
         "active" -> countdown.progress.coerceIn(0f, 1f)
-        // Before a shift there is no shift progress; use the remaining wait as a
-        // gentle drain over a 24h window so the background still follows the clock.
-        "before" -> (countdown.seconds / 86400f).coerceIn(0f, 1f)
-        "rest", "after", "leave" -> 0f
+        "before", "rest" -> (1f - (countdown.seconds / 86400f)).coerceIn(0f, 1f)
+        "after", "leave" -> 0f
         else -> 0.30f
     }
     val liquid by animateFloatAsState(

@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -27,6 +29,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import ui.feice.mochi.basic.MochiDialog
+import ui.feice.mochi.basic.MochiDialogAction
+import ui.feice.mochi.basic.MochiDialogActionRole
 import ui.feice.mochi.basic.MochiTabItem
 import ui.feice.mochi.basic.Text
 import ui.feice.mochi.effect.content.MochiThemeRevealHost
@@ -50,7 +55,9 @@ import com.banbiao.app.data.AppState
 import com.banbiao.app.data.ShiftDef
 import com.banbiao.app.data.StateStore
 import com.banbiao.app.core.IslandNotifier
+import com.banbiao.app.core.UpdateManager
 import com.banbiao.app.data.ThemeMode
+import kotlinx.coroutines.launch
 
 internal val LightAccent = Color(0xFFB56576)
 internal val DarkAccent = Color(0xFFE7A6B4)
@@ -92,6 +99,14 @@ fun CadenceRoot(initialState: AppState) {
             update(state.copy(islandEnabled = enabled))
         }
     }
+    var updateInfo by remember { mutableStateOf<UpdateManager.Update?>(null) }
+    var downloadingUpdate by remember { mutableStateOf(false) }
+    var updateProgress by remember { mutableFloatStateOf(0f) }
+    val updateScope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        updateInfo = UpdateManager.checkForUpdate(APP_VERSION)
+    }
+
     val reveal = rememberMochiThemeRevealState()
     fun changeTheme(mode: ThemeMode) {
         val nextDark = when (mode) {
@@ -161,7 +176,75 @@ fun CadenceRoot(initialState: AppState) {
                 }
             }
         }
+        UpdatePrompt(
+            info = updateInfo,
+            downloading = downloadingUpdate,
+            progress = updateProgress,
+            onDismiss = { if (!downloadingUpdate) updateInfo = null },
+            onDownload = {
+                val info = updateInfo ?: return@UpdatePrompt
+                downloadingUpdate = true
+                updateProgress = 0f
+                updateScope.launch {
+                    try {
+                        val file = UpdateManager.download(context, info) { updateProgress = it }
+                        downloadingUpdate = false
+                        updateInfo = null
+                        UpdateManager.install(context, file)
+                    } catch (error: Exception) {
+                        downloadingUpdate = false
+                        Toast.makeText(context, "更新下载失败：${error.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            },
+        )
     }
+}
+
+@Composable
+private fun UpdatePrompt(
+    info: UpdateManager.Update?,
+    downloading: Boolean,
+    progress: Float,
+    onDismiss: () -> Unit,
+    onDownload: () -> Unit,
+) {
+    val update = info ?: return
+    MochiDialog(
+        visible = true,
+        onDismissRequest = onDismiss,
+        title = "发现新版本 ${update.version}",
+        message = if (downloading) {
+            "正在下载 ${(progress * 100).toInt()}%\n\n${update.notes}"
+        } else {
+            update.notes.ifBlank { "有新版本可用，是否现在更新？" }
+        },
+        actions = if (downloading) {
+            persistentListOf(
+                MochiDialogAction(
+                    label = "下载中…",
+                    role = MochiDialogActionRole.Default,
+                    enabled = false,
+                    onClick = {},
+                ),
+            )
+        } else {
+            persistentListOf(
+                MochiDialogAction(
+                    label = "稍后",
+                    role = MochiDialogActionRole.Cancel,
+                    enabled = true,
+                    onClick = onDismiss,
+                ),
+                MochiDialogAction(
+                    label = "立即更新",
+                    role = MochiDialogActionRole.Default,
+                    enabled = true,
+                    onClick = onDownload,
+                ),
+            )
+        },
+    )
 }
 
 internal fun cadenceColors(dark: Boolean): MochiColorScheme {
