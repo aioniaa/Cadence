@@ -1,12 +1,7 @@
 package com.banbiao.app.ui
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.SystemClock
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -57,7 +52,6 @@ import com.banbiao.app.data.AppInfo
 import com.banbiao.app.data.AppState
 import com.banbiao.app.data.ShiftDef
 import com.banbiao.app.data.StateStore
-import com.banbiao.app.core.IslandNotifier
 import com.banbiao.app.core.UpdateManager
 import com.banbiao.app.data.ThemeMode
 import kotlinx.coroutines.CancellationException
@@ -83,27 +77,6 @@ fun CadenceRoot(initialState: AppState) {
     fun update(next: AppState) {
         state = next
         store.save(next)
-    }
-    var pendingIsland by remember { mutableStateOf(false) }
-    val notificationPermission = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        if (granted && pendingIsland) {
-            update(state.copy(islandEnabled = true))
-        } else if (!granted) {
-            Toast.makeText(context, "需要通知权限才能上岛", Toast.LENGTH_SHORT).show()
-        }
-        pendingIsland = false
-    }
-    fun toggleIsland(enabled: Boolean) {
-        if (enabled && Build.VERSION.SDK_INT >= 33 &&
-            context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        ) {
-            pendingIsland = true
-            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        } else {
-            update(state.copy(islandEnabled = enabled))
-        }
     }
     var updateInfo by remember { mutableStateOf<UpdateManager.Update?>(null) }
     var downloadingUpdate by remember { mutableStateOf(false) }
@@ -190,17 +163,6 @@ fun CadenceRoot(initialState: AppState) {
         )
     }
 
-    LaunchedEffect(
-        state.islandEnabled,
-        state.assignments,
-        state.leaves,
-        state.rule,
-        state.autoEnabled,
-        state.shiftTypes,
-    ) {
-        IslandNotifier.sync(context, state)
-    }
-
     val monoTextStyles = defaultTextStyles().tabularNumbers()
     MochiTheme(colors = colors, textStyles = monoTextStyles, materials = materials) {
         MochiThemeRevealHost(reveal, Modifier.fillMaxSize()) {
@@ -232,7 +194,6 @@ fun CadenceRoot(initialState: AppState) {
                                 state = state,
                                 changeTheme = ::changeTheme,
                                 dark = dark,
-                                onToggleIsland = ::toggleIsland,
                                 checkingUpdate = checkingUpdate,
                                 onCheckUpdate = { checkForUpdates(true) },
                             )

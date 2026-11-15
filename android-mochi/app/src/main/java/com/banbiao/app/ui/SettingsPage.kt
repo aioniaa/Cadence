@@ -77,7 +77,6 @@ internal fun SettingsPage(
     state: AppState,
     changeTheme: (ThemeMode) -> Unit,
     dark: Boolean,
-    onToggleIsland: (Boolean) -> Unit,
     checkingUpdate: Boolean,
     onCheckUpdate: () -> Unit,
 ) {
@@ -135,19 +134,6 @@ internal fun SettingsPage(
                         }
                     }
                 }
-            }
-        }
-        item {
-            MochiListSection(
-                header = "超级岛",
-                footer = "开启后使用小米焦点通知 miui.focus.param；需小米后台为应用开通焦点通知权限，否则会退化为普通通知。",
-            ) {
-                MochiListRow(
-                    title = "上岛显示下班倒计时",
-                    subtitle = if (state.islandEnabled) "已开启" else "未开启",
-                    checked = state.islandEnabled,
-                    onClick = { onToggleIsland(!state.islandEnabled) },
-                )
             }
         }
         item {

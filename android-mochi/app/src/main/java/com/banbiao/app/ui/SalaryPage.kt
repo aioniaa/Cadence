@@ -155,16 +155,17 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                                         year = MIN_SALARY_YEAR + index
                                     },
                                     selectedIndex = year - MIN_SALARY_YEAR,
+                                    modifier = Modifier.height(40.dp),
                                 ) {
                                     Text(
                                         "${year}年",
-                                        style = MochiTheme.textStyles.titleMedium,
+                                        style = MochiTheme.textStyles.body.copy(fontSize = 14.sp),
                                         color = MochiTheme.colorScheme.onSurface,
                                     )
                                     Spacer(Modifier.width(4.dp))
                                     MochiIonicon(
                                         "chevron-down",
-                                        size = 14.dp,
+                                        size = 12.dp,
                                         tint = MochiTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
@@ -178,22 +179,23 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                                             month = index + 1
                                         },
                                         selectedIndex = month - 1,
+                                        modifier = Modifier.height(40.dp),
                                     ) {
                                         Text(
                                             "${month}月",
-                                            style = MochiTheme.textStyles.titleMedium,
+                                            style = MochiTheme.textStyles.body.copy(fontSize = 14.sp),
                                             color = MochiTheme.colorScheme.onSurface,
                                         )
                                         Spacer(Modifier.width(4.dp))
                                         MochiIonicon(
                                             "chevron-down",
-                                            size = 14.dp,
+                                            size = 12.dp,
                                             tint = MochiTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
                                 }
                             }
-                            Spacer(Modifier.height(2.dp))
+                            Spacer(Modifier.height(8.dp))
                             MochiCounterText(
                                 text = formatSalary(selectedTotal),
                                 direction = 1,

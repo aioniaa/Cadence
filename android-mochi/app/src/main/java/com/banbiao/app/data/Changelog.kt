@@ -12,6 +12,13 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
         version = AppInfo.version,
         current = true,
         updates = listOf(
+            "工资页年/月下拉选择更紧凑，并增加与金额之间的间距",
+            "设置页暂时移除「上岛显示下班倒计时」入口",
+        ),
+    ),
+    ChangelogEntry(
+        version = "2.6.5",
+        updates = listOf(
             "工资页年/月选择改为下拉菜单，可直接跳到指定年月",
             "非当前月时显示「回到本月」，一键回到当前年月",
             "工资记录弹窗在保存、取消和返回时播放退场动画",
