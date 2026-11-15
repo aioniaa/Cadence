@@ -27,8 +27,13 @@ object UpdateManager {
     data class Update(
         val version: String,
         val apkUrl: String,
-        val notes: String,
-    )
+        val notes: List<Note>,
+    ) {
+        data class Note(
+            val fix: Boolean,
+            val text: String,
+        )
+    }
 
     sealed interface CheckResult {
         data class Available(val update: Update) : CheckResult
@@ -151,8 +156,8 @@ object UpdateManager {
         context.startActivity(intent)
     }
 
-    private fun conciseNotes(body: String): String {
-        val bullets = body.lineSequence()
+    private fun conciseNotes(body: String): List<Update.Note> {
+        return body.lineSequence()
             .map { it.trim() }
             .filter { line ->
                 line.startsWith("- ") || line.startsWith("* ") ||
@@ -164,12 +169,34 @@ object UpdateManager {
             }
             .filter { it.isNotBlank() }
             .take(8)
+            .map(::toNote)
             .toList()
-        return if (bullets.isEmpty()) {
-            "有新版本可用，是否现在更新？"
-        } else {
-            bullets.joinToString("\n") { "• $it" }.take(600)
+    }
+
+    private fun toNote(line: String): Update.Note {
+        var text = line
+        var fix = false
+        val labelled = Regex("^\\[\\s*(更新|修复)\\s*]\\s*").find(text)
+        val boldLabelled = Regex("^\\*\\*(更新|修复)\\*\\*\\s*[：:]?\\s*").find(text)
+        val prefixed = Regex("^(更新|修复|修正|解决|fix|feat)\\s*[：:]\\s*", RegexOption.IGNORE_CASE).find(text)
+        when {
+            labelled != null -> {
+                fix = labelled.groupValues[1] == "修复"
+                text = text.removeRange(labelled.range).trim()
+            }
+            boldLabelled != null -> {
+                fix = boldLabelled.groupValues[1] == "修复"
+                text = text.removeRange(boldLabelled.range).trim()
+            }
+            prefixed != null -> {
+                fix = prefixed.groupValues[1].lowercase() !in setOf("更新", "feat")
+                text = text.removeRange(prefixed.range).trim()
+            }
+            text.startsWith("修复") || text.startsWith("修正") || text.startsWith("解决") -> {
+                fix = true
+            }
         }
+        return Update.Note(fix = fix, text = text)
     }
 
     private fun isNewer(candidate: String, current: String): Boolean {

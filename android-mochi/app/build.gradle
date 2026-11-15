@@ -17,8 +17,8 @@ android {
         applicationId 'com.banbiao.app'
         minSdk 26
         targetSdk 36
-        versionCode 55
-        versionName '2.6.8'
+        versionCode 57
+        versionName '2.7.0'
     }
     signingConfigs {
         if (keystoreFile.exists()) {

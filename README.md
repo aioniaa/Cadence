@@ -1,6 +1,6 @@
 # Cadence
 
-按日期排班的极简班表。Android 2.6.8 使用原生 Kotlin + Jetpack Compose，界面组件来自 [mochi-compose 0.2.0](https://github.com/feice11/mochi-compose)，排班投影与倒计时核心用 Rust 实现。macOS 1.4.1 保留桌面版和桌面小组件。
+按日期排班的极简班表。Android 2.7.0 使用原生 Kotlin + Jetpack Compose，界面组件来自 [mochi-compose 0.2.0](https://github.com/feice11/mochi-compose)，排班投影与倒计时核心用 Rust 实现。macOS 1.4.1 保留桌面版和桌面小组件。
 
 > **技术说明**：mochi-compose 是 Kotlin / Jetpack Compose 组件库，无法从 Rust 直接调用。因此采用 **UI = Kotlin + Compose + Mochi，核心 = Rust + JNI**。这样既能严格使用组件库，又能把日期投影、自动轮班和倒计时放进 Rust。
 
@@ -13,7 +13,7 @@
 
 黑色到深灰的渐变背景 + 单个粗体连笔 C，代表 Cadence；没有额外图形、文字或拼接。Android 使用自适应图标、单色主题图标和旧版 PNG 图标。
 
-## Android 2.6.8
+## Android 2.7.0
 
 ### 四个页面 + 悬浮底栏
 
@@ -21,7 +21,7 @@
 - **班次**：添加、改名、删除自定义班次；修改开始/结束时间；开启和编辑自动轮班。
 - **工资**：累计工资、按月/按年查询和年度明细；可在首页底部记录当月到手工资。
 - **设置**：按钮点击切换浅色/深色、应用信息、树状更新日志。每次发布必须同步追加更新日志。
-- **应用内更新**：启动时读取 GitHub Releases 最新版本；设置里点版本行可手动检查。检查中版本号旁显示加载动画，发现更新后用 MochiDialog 提示，带下载进度条，下载完自动调起系统安装器。
+- **应用内更新**：启动时读取 GitHub Releases 最新版本；设置里点版本行可手动检查。检查中版本号旁显示加载动画，发现更新后用 MochiDialog 提示，带下载进度条，下载完自动调起系统安装器。更新日志和更新弹窗的每条内容用「更新 / 修复」胶囊标签标注，长内容换行后与胶囊后的正文左对齐，不再显示条目前圆点。
 - **字体**：恢复原字体，数字启用 tnum 等宽特性，避免宽度跳动；按钮统一液态玻璃。
 - **全屏页面**：日详情、班次、自动轮班、更新日志的标题始终带半透明渐变和边缘模糊，内容可从标题背后通过。
 - **休假**：日期详情用 `MochiListDisclosure` 在同一容器内展开 MochiCalendar 日期范围选择，带展开动画；未点右上角确认前不会写入休假。确认在右上角、关闭在左上角，按钮使用玻璃设计。
@@ -60,8 +60,8 @@
 ### 工资记录
 
 - **首页入口**：日历底部右侧显示「本月工资」；未记录时显示「记录本月工资」，点击后用 `MochiDialog` + `MochiDialogTextField` 输入金额。输入 0 可以清除本月记录。
-- **累计工资**：工资页顶部用 `MochiCounterText` 展示所有月份合计，金额变化时逐位滚动。
-- **按年月查询**：`MochiSegmentedControl` 在「按月 / 按年」之间切换；年份和月份都用 `MochiDropdown` 下拉选择，可直接跳到具体年月，左右按钮仍可逐月/逐年浏览。年/月下拉恢复常规高度和字号；金额区域上方留 20dp、下方留 28dp，视觉位置略微上移。
+- **累计工资**：工资页顶部用 `MochiCounterText` 展示所有月份合计，金额变化时逐位滚动；右上角小眼睛可一键隐藏或显示累计金额。
+- **按年月查询**：`MochiSegmentedControl` 在「按月 / 按年」之间切换；年份和月份都用 `MochiDropdown` 下拉选择，可直接跳到具体年月，左右按钮仍可逐月/逐年浏览。年/月下拉恢复常规高度和字号；左右箭头与年月下拉按钮间距统一，金额区域上方留 20dp、下方留 28dp，视觉位置略微上移。
 - **回到本月**：当查看的不是当前年月时，操作区显示「回到本月」，点击立即切回按月模式并定位到当前月份。
 - **操作区过渡**：切换年月导致底部按钮组合变化时，使用 `MochiBlurCrossfade` + `MochiBlurTransitions.Replace` 做模糊替换，新旧按钮叠化过渡，不再瞬间切换。
 - **数字过渡**：月份标签和「年度明细」标题中的年份使用 `MochiCounterText`，切换时按数字滚轮过渡，不直接闪现。
@@ -81,6 +81,7 @@
 
 - `MochiTheme` + 自定义 `MochiColorScheme`
 - `MochiDialog` / `MochiDialogTextField`（工资输入）
+- `MochiListStatusChip`（更新日志/更新弹窗的「更新 / 修复」胶囊）
 - `MochiSegmentedControl`（工资按月/按年）
 - `MochiDropdown` / `MochiItem`（工资年/月跳转）
 - `iosMaterials`（mochi-ios v0.2.0 源码接入）
@@ -115,11 +116,11 @@ Rust 动态读取 `shiftTypes`，支持任意班次 ID、名称和时间；旧�
 
 ### Android
 
-1. 安装 `Cadence-2.6.8-Android.apk`
+1. 安装 `Cadence-2.7.0-Android.apk`
 2. Android 8.0（API 26）及以上
 3. 覆盖安装旧版即可；首次启动会迁移旧 WebView 排班数据
 
-APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCode 55，可直接覆盖 2.1.x / 2.0.x / 1.3.2。
+APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCode 57，可直接覆盖 2.1.x / 2.0.x / 1.3.2。
 
 ### macOS
 
@@ -141,7 +142,7 @@ APK 使用原 `com.banbiao.app` 包名和原 release keystore 签名，versionCo
 脚本会编译 Rust 两个 ABI、复制 `.so`、构建 release APK，并输出：
 
 ```text
-dist/Cadence-2.6.8-Android.apk
+dist/Cadence-2.7.0-Android.apk
 ```
 
 如果 Rust 尚未安装：
@@ -172,6 +173,8 @@ android-mochi/          Android 2.6 原生应用
     ui/HomePage.kt      倒计时 + 日历 + 本月工资入口
     ui/ShiftsPage.kt    班次添加/编辑/删除 + 轮班规则
     ui/SalaryPage.kt    累计工资 + 年月查询 + 年度明细
+    ui/NoteChip.kt      「更新 / 修复」胶囊标签
+    ui/UpdateNotes.kt   更新弹窗的胶囊化更新内容
     ui/SettingsPage.kt  外观与关于
     ui/feice/mochi/ios/ mochi-ios v0.2.0 源码接入
   rust/banbiao_core/    Rust 排班/倒计时核心
@@ -186,12 +189,14 @@ dist/                   安装包
 
 ## 测试
 
-- Android 2.6.8 release 在 Android 15 模拟器安装运行；验证 4 个 Tab、悬浮底栏、无卡片主页、上班前充能/下班递减进度、休息日下次上班倒计时、混色倒计时、左右滑动月历、主题和 Rust JNI。
+- Android 2.7.0 release 在 Android 15 模拟器安装运行；验证 4 个 Tab、悬浮底栏、无卡片主页、上班前充能/下班递减进度、休息日下次上班倒计时、混色倒计时、左右滑动月历、主题和 Rust JNI。
 - 工资：实际验证首页入口、MochiDialog 输入、按月/按年汇总、跨月累计、年度明细、修改和输入 0 清除；强制停止后重新打开数据仍在。
 - 工资金额：2.6.8 实测首页、累计、按月、明细均保留两位小数，整元显示为 `¥1,000.00`。
 - 工资年月跳转：2.6.8 实测年份下拉切到 2025 年、月份下拉切到 5 月，点「回到本月」恢复 2026 年 11 月；保存/取消/返回键均先播放关闭动画再移除弹窗。
 - 工资操作区：2.6.8 实测切换年月时底部按钮组合改用 `MochiBlurCrossfade` 过渡；金额下方额外留白后视觉位置略微上移。
 - 工资数字过渡：2.6.8 实测月份与明细标题年份切换正常；年/月下拉恢复常规大小后仍可点开选择。
+- 更新日志胶囊：2.7.0 实机确认「更新」「修复」胶囊与正文顶部对齐；长内容换行后从胶囊右侧正文起点续排。
+- 工资查看范围：2.7.0 实测左右箭头、年份和月份四个控件之间三处间距均为约 20dp。
 - 自定义班次：实际添加 `Early 09:00–18:00`，在日期上排班，主页倒计时显示 `Early · 09:00–18:00`。
 - 休假：日期详情可设置/取消休假，选中后可用日期范围选择器批量设置；Rust 测试验证休假暂停、假期续接和自动轮班暂停。
 - 日历点击：实际点选 11 月 15 日能打开日期详情并修改班次；批量休假入口保留在日历底部。

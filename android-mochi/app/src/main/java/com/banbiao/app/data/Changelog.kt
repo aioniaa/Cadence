@@ -12,6 +12,14 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
         version = AppInfo.version,
         current = true,
         updates = listOf(
+            "更新日志和更新弹窗去掉条目圆点，改用「更新 / 修复」胶囊标签，长内容换行后与正文左对齐",
+            "工资页「查看范围」的左右箭头与年月下拉按钮间距统一",
+            "累计工资右侧新增小眼睛，可一键隐藏或显示累计金额",
+        ),
+    ),
+    ChangelogEntry(
+        version = "2.6.8",
+        updates = listOf(
             "工资页月份与年度明细标题改用 MochiCounterText，切换年份和月份时数字滚动过渡",
             "工资页年/月下拉恢复原来的大小和字号",
             "工资金额下方增加间距，整体视觉位置略微上移",

@@ -227,7 +227,12 @@ private fun UpdateAvailableDialog(
         visible = true,
         onDismissRequest = onDismiss,
         title = "发现新版本 ${update.version}",
-        message = update.notes.ifBlank { "有新版本可用，是否现在更新？" },
+        message = if (update.notes.isEmpty()) "有新版本可用，是否现在更新？" else null,
+        content = {
+            if (update.notes.isNotEmpty()) {
+                UpdateNoteList(update.notes)
+            }
+        },
         actions = persistentListOf(
             MochiDialogAction(
                 label = "暂不更新",

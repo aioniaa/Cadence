@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -84,6 +87,7 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
     var mode by rememberSaveable { mutableIntStateOf(0) } // 0 月 / 1 年
     var editingKey by remember { mutableStateOf<String?>(null) }
     var openMenu by remember { mutableStateOf<String?>(null) }
+    var totalVisible by rememberSaveable { mutableStateOf(true) }
 
     val total = state.totalSalary()
     val selectedMonthKey = AppState.salaryKey(year, month)
@@ -106,7 +110,12 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
         subtitle = "记录每一份到手的工资",
     ) {
         item {
-            SalarySummaryCard(total = total, months = state.salaries.size)
+            SalarySummaryCard(
+                total = total,
+                months = state.salaries.size,
+                visible = totalVisible,
+                onToggleVisible = { totalVisible = !totalVisible },
+            )
         }
         item {
             MochiListSection(
@@ -136,6 +145,7 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                     Row(
                         Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         MochiIconButton(
                             onClick = {
@@ -154,24 +164,45 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                             },
                         ) { MochiIonicon("chevron-back", size = 20.dp) }
 
-                        Row(
-                            Modifier.weight(1f),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
+                        MochiDropdown(
+                            expanded = openMenu == "year",
+                            onExpandedChange = { openMenu = if (it) "year" else null },
+                            items = yearItems,
+                            onItemClick = { index ->
+                                year = MIN_SALARY_YEAR + index
+                            },
+                            selectedIndex = year - MIN_SALARY_YEAR,
+                            buttonPadding = PaddingValues(horizontal = 12.dp),
                         ) {
+                            Text(
+                                "${year}年",
+                                style = MochiTheme.textStyles.body,
+                                color = MochiTheme.colorScheme.onSurface,
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            MochiIonicon(
+                                "chevron-down",
+                                size = 16.dp,
+                                tint = MochiTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+
+                        if (mode == 0) {
                             MochiDropdown(
-                                expanded = openMenu == "year",
-                                onExpandedChange = { openMenu = if (it) "year" else null },
-                                items = yearItems,
+                                expanded = openMenu == "month",
+                                onExpandedChange = { openMenu = if (it) "month" else null },
+                                items = monthItems,
                                 onItemClick = { index ->
-                                    year = MIN_SALARY_YEAR + index
+                                    month = index + 1
                                 },
-                                selectedIndex = year - MIN_SALARY_YEAR,
+                                selectedIndex = month - 1,
+                                buttonPadding = PaddingValues(horizontal = 12.dp),
                             ) {
-                                Text(
-                                    "${year}年",
+                                MochiCounterText(
+                                    value = month.toLong(),
                                     style = MochiTheme.textStyles.body,
                                     color = MochiTheme.colorScheme.onSurface,
+                                    format = { "${it}月" },
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 MochiIonicon(
@@ -179,31 +210,6 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
                                     size = 16.dp,
                                     tint = MochiTheme.colorScheme.onSurfaceVariant,
                                 )
-                            }
-                            if (mode == 0) {
-                                Spacer(Modifier.width(6.dp))
-                                MochiDropdown(
-                                    expanded = openMenu == "month",
-                                    onExpandedChange = { openMenu = if (it) "month" else null },
-                                    items = monthItems,
-                                    onItemClick = { index ->
-                                        month = index + 1
-                                    },
-                                    selectedIndex = month - 1,
-                                ) {
-                                    MochiCounterText(
-                                        value = month.toLong(),
-                                        style = MochiTheme.textStyles.body,
-                                        color = MochiTheme.colorScheme.onSurface,
-                                        format = { "${it}月" },
-                                    )
-                                    Spacer(Modifier.width(4.dp))
-                                    MochiIonicon(
-                                        "chevron-down",
-                                        size = 16.dp,
-                                        tint = MochiTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
                             }
                         }
 
@@ -346,7 +352,12 @@ internal fun SalaryPage(state: AppState, update: (AppState) -> Unit) {
 }
 
 @Composable
-private fun SalarySummaryCard(total: Long, months: Int) {
+private fun SalarySummaryCard(
+    total: Long,
+    months: Int,
+    visible: Boolean,
+    onToggleVisible: () -> Unit,
+) {
     val scheme = MochiTheme.colorScheme
     val shape = remember { MochiRoundedRectangle(MochiListDefaults.SectionCorner) }
     val cardColor = MochiListDefaults.colors().container
@@ -373,6 +384,21 @@ private fun SalarySummaryCard(total: Long, months: Int) {
                     color = scheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.weight(1f))
+                MochiIconButton(
+                    onClick = onToggleVisible,
+                    style = MochiButtonStyle.Text,
+                    size = 32.dp,
+                    modifier = Modifier.semantics {
+                        contentDescription = if (visible) "隐藏累计工资" else "显示累计工资"
+                    },
+                ) {
+                    MochiIonicon(
+                        if (visible) "eye-outline" else "eye-off-outline",
+                        size = 18.dp,
+                        tint = if (visible) scheme.onSurfaceVariant else scheme.primary,
+                    )
+                }
+                Spacer(Modifier.width(4.dp))
                 Box(
                     Modifier
                         .size(30.dp)
@@ -384,19 +410,28 @@ private fun SalarySummaryCard(total: Long, months: Int) {
                 }
             }
             Spacer(Modifier.height(10.dp))
-            MochiCounterText(
-                text = formatSalary(total),
-                direction = 1,
-                style = MochiTheme.textStyles.displaySmall.copy(
-                    fontSize = when {
-                        formatSalary(total).length > 17 -> 22.sp
-                        formatSalary(total).length > 14 -> 28.sp
-                        else -> 36.sp
-                    },
-                    fontWeight = FontWeight.Bold,
-                ),
-                color = scheme.onSurface,
+            val amountStyle = MochiTheme.textStyles.displaySmall.copy(
+                fontSize = when {
+                    formatSalary(total).length > 17 -> 22.sp
+                    formatSalary(total).length > 14 -> 28.sp
+                    else -> 36.sp
+                },
+                fontWeight = FontWeight.Bold,
             )
+            if (visible) {
+                MochiCounterText(
+                    text = formatSalary(total),
+                    direction = 1,
+                    style = amountStyle,
+                    color = scheme.onSurface,
+                )
+            } else {
+                Text(
+                    text = "¥ ••••••",
+                    style = amountStyle,
+                    color = scheme.onSurface,
+                )
+            }
             Spacer(Modifier.height(8.dp))
             Text(
                 if (months == 0) {

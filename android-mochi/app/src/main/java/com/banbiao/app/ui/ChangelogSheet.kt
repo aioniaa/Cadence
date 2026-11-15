@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ui.feice.mochi.basic.MochiIconButton
@@ -101,26 +100,26 @@ private fun ChangelogNode(
                 }
             }
             entry.updates.forEach { line ->
-                ChangelogLine("更新", line, scheme.primary)
+                ChangelogLine("更新", line, accent = true)
             }
             entry.fixes.forEach { line ->
-                ChangelogLine("修复", line, scheme.onSurfaceVariant)
+                ChangelogLine("修复", line, accent = false)
             }
         }
     }
 }
 
 @Composable
-private fun ChangelogLine(label: String, line: String, labelColor: Color) {
-    Row(Modifier.fillMaxWidth().padding(top = 3.dp)) {
-        Text(
-            label,
-            style = MochiTheme.textStyles.labelSmall,
-            color = labelColor,
-            modifier = Modifier.width(32.dp),
-        )
+private fun ChangelogLine(label: String, line: String, accent: Boolean) {
+    Row(
+        Modifier.fillMaxWidth().padding(top = 6.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        CadenceNoteChip(label = label, accent = accent)
+        Spacer(Modifier.width(8.dp))
         Text(
             line,
+            modifier = Modifier.weight(1f).padding(top = 2.dp),
             style = MochiTheme.textStyles.footnote,
             color = MochiTheme.colorScheme.onSurfaceVariant,
         )
