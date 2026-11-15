@@ -12,8 +12,12 @@ internal val CADENCE_CHANGELOG: List<ChangelogEntry> = listOf(
         version = AppInfo.version,
         current = true,
         fixes = listOf(
-            "修复鸣谢行文字未垂直居中",
+            "鸣谢改为两行显示，右侧链接保持垂直居中",
         ),
+    ),
+    ChangelogEntry(
+        version = "2.6.1",
+        fixes = listOf("修复鸣谢行文字未垂直居中"),
     ),
     ChangelogEntry(
         version = "2.6.0",

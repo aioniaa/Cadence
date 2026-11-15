@@ -1,5 +1,6 @@
 package com.banbiao.app.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +32,45 @@ import ui.feice.mochi.theme.MochiTheme
 import com.banbiao.app.data.AppInfo
 import com.banbiao.app.data.AppState
 import com.banbiao.app.data.ThemeMode
+
+@Composable
+private fun AckRow(
+    title: String,
+    subtitle: String,
+    value: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                title,
+                style = MochiTheme.textStyles.body,
+                color = MochiTheme.colorScheme.onSurface,
+            )
+            Text(
+                subtitle,
+                style = MochiTheme.textStyles.footnote,
+                color = MochiTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                value,
+                style = MochiTheme.textStyles.footnote,
+                color = MochiTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.width(6.dp))
+            MochiIonicon("chevron-forward", size = 14.dp)
+        }
+    }
+}
 
 @Composable
 internal fun SettingsPage(
@@ -115,22 +155,22 @@ internal fun SettingsPage(
                 header = "鸣谢",
                 footer = "点击作者或组件库打开 GitHub 页面",
             ) {
-                MochiListRow(
-                    title = "作者 · aioniaa",
+                AckRow(
+                    title = "作者",
+                    subtitle = "aioniaa",
                     value = "GitHub",
-                    chevron = true,
                     onClick = { uriHandler.openUri("https://github.com/aioniaa") },
                 )
-                MochiListRow(
-                    title = "组件库 · mochi-compose",
+                AckRow(
+                    title = "组件库",
+                    subtitle = "mochi-compose · feice11",
                     value = "GitHub",
-                    chevron = true,
                     onClick = { uriHandler.openUri("https://github.com/feice11/mochi-compose") },
                 )
-                MochiListRow(
+                AckRow(
                     title = "开源许可证",
-                    value = "Apache-2.0",
-                    chevron = true,
+                    subtitle = "Apache License 2.0",
+                    value = "查看",
                     onClick = { uriHandler.openUri("https://www.apache.org/licenses/LICENSE-2.0") },
                 )
             }
